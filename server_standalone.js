@@ -6,8 +6,6 @@
 
 const http = require("http");
 const url = require("url");
-const path = require("path");
-const fs = require("fs");
 
 // ─────────────────────────────────────────────
 //  NLP UTILITIES
@@ -82,133 +80,234 @@ const SYNONYMS = {
   analyze: ["study", "look at", "examine", "break down"],
 };
 
-// Phrases typical of AI-generated text → human replacements
-const PHRASE_REPLACEMENTS = [
-  [/\bit's worth pointing out\b/gi, "it's good to note"],
-  [/\bdemonstrates\b/gi, "shows"],
-  [/\bdemonstrated\b/gi, "showed"],
-  [/\bdemonstrating\b/gi, "showing"],
-  [/\bdemonstration\b/gi, "example"],
-  [/\bdemonstrate\b/gi, "show"],
-  [/\bsubstantially\b/gi, "a lot"],
-  [/\bsignificantly\b/gi, "a lot"],
-  [/\bit's worth pointing out that\b/gi, "worth pointing out:"],
-  [/\butilizes\b/gi, "uses"],
-  [/\butilized\b/gi, "used"],
-  [/\butilizing\b/gi, "using"],
-  [/\butilization\b/gi, "use"],
-  [/\butilize\b/gi, "use"],
-  [/\bMoreover,\s*/g, "Also, "],
-  [/\bmoreover,\s*/g, "also, "],
-  [/\bFurthermore,\s*/g, "Plus, "],
-  [/\bfurthermore,\s*/g, "plus, "],
-  [/\bAdditionally,\s*/g, "And, "],
-  [/\badditionally,\s*/g, "and, "],
-  [/\bNevertheless,\s*/g, "Still, "],
-  [/\bnevertheless,\s*/g, "still, "],
-  [/\bNotwithstanding,\s*/g, "Even so, "],
-  [/\bnotwithstanding,\s*/g, "even so, "],
-  [/\bSubsequently,\s*/g, "After that, "],
-  [/\bsubsequently,\s*/g, "after that, "],
-  [/\bConsequently,\s*/g, "As a result, "],
-  [/\bconsequently,\s*/g, "as a result, "],
-  [/\bThus,\s*/g, "So, "],
-  [/\bthus,\s*/g, "so, "],
-  [/\bHence,\s*/g, "So, "],
-  [/\bhence,\s*/g, "so, "],
-  [/\bAlbeit\b/gi, "although"],
-  [/\bWhereas\b/gi, "while"],
-  [/\bnotable\b/gi, "real"],
-  [/\bseamless integration\b/gi, "easy adoption"],
-  [/\bseamless(ly)?\b/gi, "smooth"],
-  [/\binnovative solutions\b/gi, "new tools"],
-  [/\bto leverage\b/gi, "to use"],
-  [/\bcan leverage\b/gi, "can use"],
-  [/\bthese innovative solutions leverage\b/gi, "these new tools use"],
-  [/\bfacilitate optimal\b/gi, "achieve the best"],
-  [/\bmust therefore\b/gi, "should"],
-  [/\bmust thus\b/gi, "should"],
-  [/\bwill therefore\b/gi, "will"],
-  [/\ball stakeholders\b/gi, "everyone involved"],
-  [/\bfor all stakeholders\b/gi, "for everyone"],
-  [/\bin the realm of\b/gi, "within"],
-  [/\bit is worth noting that\b/gi, "it's worth noting that"],
-  [/\bit is important to note that\b/gi, "it's worth pointing out that"],
-  [/\bit is essential to\b/gi, "you need to"],
-  [/\bone must\b/gi, "you should"],
-  [/\bone can\b/gi, "you can"],
-  [/\bthis can be attributed to\b/gi, "this is because"],
-  [/\bin order to\b/gi, "to"],
-  [/\bdue to the fact that\b/gi, "because"],
-  [/\bin the event that\b/gi, "if"],
-  [/\bat this point in time\b/gi, "now"],
-  [/\bin close proximity\b/gi, "nearby"],
-  [/\bprior to\b/gi, "before"],
-  [/\bsubsequent to\b/gi, "after"],
-  [/\bin spite of\b/gi, "despite"],
-  [/\bwith regard to\b/gi, "about"],
-  [/\bin terms of\b/gi, "for"],
-  [/\bfor the purpose of\b/gi, "to"],
-  [/\bthe fact that\b/gi, "that"],
-  [/\bis able to\b/gi, "can"],
-  [/\bare able to\b/gi, "can"],
-  [/\bwas able to\b/gi, "could"],
-  [/\bwere able to\b/gi, "could"],
-  [/\bmake use of\b/gi, "use"],
-  [/\btake into consideration\b/gi, "consider"],
-  [/\btake into account\b/gi, "account for"],
-  [/\bplay a role in\b/gi, "affect"],
-  [/\bplay a crucial role\b/gi, "matter a lot"],
-  [/\bin light of\b/gi, "given"],
-  [/\ba variety of\b/gi, "various"],
-  [/\ba wide range of\b/gi, "many"],
-  [/\ba number of\b/gi, "several"],
-  [/\bthe majority of\b/gi, "most"],
-  [/\bthe ability to\b/gi, "the power to"],
-  [/\bhas the potential to\b/gi, "could"],
-  [/\bserves as\b/gi, "acts as"],
-  [/\bultimately\b/gi, "in the end"],
-  [/\bin conclusion,?\s*/gi, "To wrap up, "],
-  [/\bin summary,?\s*/gi, "In short, "],
-  [/\bto summarize,?\s*/gi, "Basically, "],
-  [/\bit should be noted\b/gi, "note that"],
-  [/\bgoing forward\b/gi, "from now on"],
-  [/\bmoving forward\b/gi, "from here"],
-  [/\bleveraging\b/gi, "using"],
-  [/\bleveraged\b/gi, "used"],
-  [/\bleverage\b/gi, "use"],
-  [/\bsynergy\b/gi, "teamwork"],
-  [/\bparadigm\b/gi, "model"],
-  [/\bbest practices\b/gi, "proven methods"],
-  [/\bstate-of-the-art\b/gi, "modern"],
-  [/\bcutting-edge\b/gi, "latest"],
-  [/\bholistic approach\b/gi, "full picture"],
-  [/\binnovative solution(s)?\b/gi, "new approach"],
-  [/\bone must\b/gi, "you should"],
-  [/\bone should\b/gi, "you should"],
-  [/\bone can\b/gi, "you can"],
-  [/\bstakeholders?\b/gi, "everyone involved"],
-  [/\bfoster(s|ing)?/gi, "build"],
-  [/\bunderscores?\b/gi, "shows"],
-  [/\bnuanced?\b/gi, "subtle"],
-  [/\bpivotal\b/gi, "key"],
-  [/\bparamount\b/gi, "most important"],
-  [/\bprofound(ly)?\b/gi, "deep"],
-  [/\bremarkably?\b/gi, "worth noting"],
-  [/\bit is (crucial|vital|essential|necessary|important) to\b/gi, "you need to"],
-  [/\bplays? a (crucial|key|vital|important|significant) role\b/gi, "matters a lot"],
-  [/\bthis (essay|article|paper|analysis)\b/gi, "this"],
-  [/\bin (today's|modern|contemporary) (world|society|landscape|era)\b/gi, "today"],
-  [/\bholistic\b/gi, "complete"],
-  [/\bseamlessly\b/gi, "smoothly"],
-  [/\brobust\b/gi, "solid"],
-  [/\bcutting-edge\b/gi, "modern"],
-  [/\bstate-of-the-art\b/gi, "advanced"],
-  [/\bbest-in-class\b/gi, "top-quality"],
-  [/\bdelve into\b/gi, "explore"],
-  [/\bunpack\b/gi, "look at"],
-  [/\bnavigate\b/gi, "work through"],
-  [/\btackle\b/gi, "handle"],
+
+// Step 1: Full phrase replacements (order matters — longest first)
+const PHRASE_MAP = [
+  [/\bhence\b/gi, 'so'],
+  [/\btherefore\b/gi, 'so'],
+  [/\bwill\s+therefore\b/gi, 'will'],
+  [/\bmust\s+therefore\b/gi, 'should'],
+  [/\bnew\s+approach\s+use\b/gi, 'new approaches use'],
+  [/\bwith\s+latest\b/gi, 'with the latest'],
+  [/\busing\s+latest\b/gi, 'using the latest'],
+  [/\buse\s+latest\b/gi, 'use the latest'],
+  [/\bthese\s+new\s+tools?\s+use\b/gi, 'these new tools use'],
+  [/\bthese\s+new\s+approach\b/gi, 'these new approaches'],
+  [/\bensures?\s+seamless\b/gi, 'keeps smooth'],
+  // Opening filler phrases — drop them entirely or replace cleanly
+  [/\b(Furthermore|Moreover|Additionally),?\s+it\s+is\s+(important|crucial|essential|vital|worth while)\s+to\s+note\s+that\s*/gi, 'Also, '],
+  [/\bit\s+is\s+(important|crucial|essential|vital|necessary)\s+to\s+note\s+that\s*/gi, ''],
+  [/\bit\s+is\s+worth\s+noting\s+that\s*/gi, ''],
+  [/\bit\s+is\s+worth\s+pointing\s+out\s+that\s*/gi, ''],
+  [/\bit\s+should\s+be\s+noted\s+(that\s*)?/gi, ''],
+  [/\bit\s+is\s+(important|crucial|essential|vital|necessary)\s+to\s+/gi, 'you need to '],
+  [/\bit\s+is\s+worth\s+noting\s*/gi, ''],
+  [/\bone\s+must\s+/gi, 'you need to '],
+  [/\bone\s+should\s+/gi, 'you should '],
+  [/\bone\s+can\s+/gi, 'you can '],
+  [/\bit\s+can\s+be\s+argued\s+that\s*/gi, ''],
+  [/\bit\s+can\s+be\s+seen\s+that\s*/gi, ''],
+  [/\bthis\s+can\s+be\s+attributed\s+to\s+the\s+fact\s+that\s*/gi, 'this is because '],
+  [/\bthis\s+can\s+be\s+attributed\s+to\s*/gi, 'this is because '],
+  [/\bdue\s+to\s+the\s+fact\s+that\s*/gi, 'because '],
+  [/\bin\s+order\s+to\s*/gi, 'to '],
+  [/\bfor\s+the\s+purpose\s+of\s*/gi, 'to '],
+  [/\bin\s+the\s+event\s+that\s*/gi, 'if '],
+  [/\bat\s+this\s+point\s+in\s+time\s*/gi, 'now '],
+  [/\bprior\s+to\s*/gi, 'before '],
+  [/\bsubsequent\s+to\s*/gi, 'after '],
+  [/\bin\s+spite\s+of\s*/gi, 'despite '],
+  [/\bwith\s+regard\s+to\s*/gi, 'about '],
+  [/\bwith\s+respect\s+to\s*/gi, 'about '],
+  [/\bin\s+terms\s+of\s*/gi, 'for '],
+  [/\bin\s+the\s+realm\s+of\s*/gi, 'in '],
+  [/\bin\s+the\s+context\s+of\s*/gi, 'in '],
+  [/\bwhen\s+it\s+comes\s+to\s*/gi, 'for '],
+  [/\bin\s+light\s+of\s*/gi, 'given '],
+  [/\bthe\s+fact\s+that\s*/gi, 'that '],
+  [/\bmake\s+use\s+of\s*/gi, 'use '],
+  [/\btake\s+into\s+consideration\s*/gi, 'consider '],
+  [/\btake\s+into\s+account\s*/gi, 'account for '],
+  [/\bhas\s+the\s+potential\s+to\s*/gi, 'can '],
+  [/\bhave\s+the\s+potential\s+to\s*/gi, 'can '],
+  [/\bis\s+able\s+to\s*/gi, 'can '],
+  [/\bare\s+able\s+to\s*/gi, 'can '],
+  [/\bwas\s+able\s+to\s*/gi, 'could '],
+  [/\bwere\s+able\s+to\s*/gi, 'could '],
+  [/\bplays?\s+a\s+(crucial|key|vital|important|significant|central|pivotal)\s+role\s+in\s*/gi, 'affects '],
+  [/\bplays?\s+a\s+(crucial|key|vital|important|significant|central|pivotal)\s+role\s*/gi, 'matters a lot '],
+  [/\bserves?\s+as\s+a\s+/gi, 'acts as a '],
+  [/\bserves?\s+as\s+/gi, 'acts as '],
+  [/\ba\s+wide\s+range\s+of\s*/gi, 'many '],
+  [/\ba\s+variety\s+of\s*/gi, 'various '],
+  [/\ba\s+number\s+of\s*/gi, 'several '],
+  [/\bthe\s+majority\s+of\s*/gi, 'most '],
+  [/\bthe\s+ability\s+to\s*/gi, 'the power to '],
+  [/\bin\s+close\s+proximity\s*(to)?\s*/gi, 'near '],
+  [/\bgoing\s+forward\s*/gi, 'from now on '],
+  [/\bmoving\s+forward\s*/gi, 'from now on '],
+  [/\bstate-of-the-art\s*/gi, 'modern '],
+  [/\bcutting[- ]edge\s*/gi, 'latest '],
+  [/\bbest\s+practices\s*/gi, 'proven methods '],
+  [/\binnovative\s+solution(s)?\s*/gi, 'new approach '],
+  [/\bholistic\s+approach\s*/gi, 'complete approach '],
+  [/\bsynerg(y|ies)\s*/gi, 'teamwork '],
+  [/\bparadigm\s+shift\s*/gi, 'big change '],
+  [/\bparadigm\b\s*/gi, 'model '],
+  [/\bstakeholders?\s*/gi, 'everyone involved '],
+  [/\ball\s+everyone\s+involved\s*/gi, 'everyone involved '],  // fix double replacement
+  [/\bseamless(ly)?\s*/gi, 'smooth '],
+  [/\brobust\b\s*/gi, 'solid '],
+  [/\boptimal(ly)?\s*/gi, 'best '],
+  [/\boptimize\b\s*/gi, 'improve '],
+  [/\boptimise\b\s*/gi, 'improve '],
+  [/\bleverage\b\s*/gi, 'use '],
+  [/\bleveraging\b\s*/gi, 'using '],
+  [/\bleveraged\b\s*/gi, 'used '],
+  [/\butilize\b\s*/gi, 'use '],
+  [/\butilizes\b\s*/gi, 'uses '],
+  [/\butilized\b\s*/gi, 'used '],
+  [/\butilizing\b\s*/gi, 'using '],
+  [/\butilization\b\s*/gi, 'use '],
+  [/\bfacilitate\s+(optimal|the\s+best|best|great|good)\b/gi, 'achieve the best'],
+  [/\bfacilitate\b\s*/gi, 'support '],
+  [/\bfacilitates\b\s*/gi, 'supports '],
+  [/\bfacilitated\b\s*/gi, 'supported '],
+  [/\bfacilitating\b\s*/gi, 'supporting '],
+  [/\bdemonstrate\b\s*/gi, 'show '],
+  [/\bdemonstrates\b\s*/gi, 'shows '],
+  [/\bdemonstrated\b\s*/gi, 'showed '],
+  [/\bdemonstrating\b\s*/gi, 'showing '],
+  [/\bdemonstration\b\s*/gi, 'example '],
+  [/\benhance\b\s*/gi, 'improve '],
+  [/\benhances\b\s*/gi, 'improves '],
+  [/\benhanced\b\s*/gi, 'improved '],
+  [/\benhancing\b\s*/gi, 'improving '],
+  [/\bensure\s+seamless\b/gi, 'keep smooth'],
+  [/\bensures\s+seamless\b/gi, 'keeps smooth'],
+  [/\bensured\s+seamless\b/gi, 'kept smooth'],
+  [/\bensure\b\s*/gi, 'make sure '],
+  [/\bensures\b\s*/gi, 'makes sure '],
+  [/\bensured\b\s*/gi, 'made sure '],
+  [/\bensuring\b\s*/gi, 'making sure '],
+  [/\bimplement\b\s*/gi, 'set up '],
+  [/\bimplements\b\s*/gi, 'sets up '],
+  [/\bimplemented\b\s*/gi, 'set up '],
+  [/\bimplementing\b\s*/gi, 'setting up '],
+  [/\bimplementation\b\s*/gi, 'setup '],
+  [/\bsignificantly\b\s*/gi, 'greatly '],
+  [/\bsubstantially\b\s*/gi, 'greatly '],
+  [/\bsignificant\b\s*/gi, 'major '],
+  [/\bcomprehensive(ly)?\s*/gi, 'thorough '],
+  [/\bcomprehensive\b\s*/gi, 'thorough '],
+  [/\binnovative\s+solutions\b\s*/gi, 'new tools '],
+  [/\bsolutions\b\s*/gi, 'tools '],
+  [/\binnovative\b\s*/gi, 'new '],
+  [/\bcrucial(ly)?\s*/gi, 'key '],
+  [/\bvital(ly)?\s*/gi, 'key '],
+  [/\bparamount\s+importance\b\s*/gi, 'key priority '],
+  [/\bparamount\b\s*/gi, 'most important '],
+  [/\bpivotal\b\s*/gi, 'key '],
+  [/\bprofound(ly)?\s*/gi, 'deep '],
+  [/\bremarkab(le|ly)\s*/gi, 'impressive '],
+  [/\bsubstantial(ly)?\s*/gi, 'large '],
+  [/\bnuanced?\s*/gi, 'detailed '],
+  [/\bholistic\b\s*/gi, 'complete '],
+  [/\bfoster\b\s*/gi, 'build '],
+  [/\bfosters\b\s*/gi, 'builds '],
+  [/\bfostered\b\s*/gi, 'built '],
+  [/\bfostering\b\s*/gi, 'building '],
+  [/\bunderscore\b\s*/gi, 'highlight '],
+  [/\bunderscores\b\s*/gi, 'highlights '],
+  [/\bunderscored\b\s*/gi, 'highlighted '],
+  [/\backnowledge\b\s*/gi, 'admit '],
+  [/\backnowledges\b\s*/gi, 'admits '],
+  [/\backnowledged\b\s*/gi, 'admitted '],
+  [/\bindicates?\s*/gi, 'shows '],
+  [/\bpioneering\b\s*/gi, 'new '],
+  [/\bgroundbreaking\b\s*/gi, 'new '],
+  [/\bpresents?\s+a\s+unique\s*/gi, 'offers '],
+  [/\bpresents?\s+an?\s+/gi, 'offers a '],
+  [/\bin\s+today\'?s\s+(world|society|landscape|era|age)\s*/gi, 'today '],
+  [/\bin\s+(modern|contemporary)\s+(world|society|landscape|era|times)\s*/gi, 'today '],
+  [/\bnotwithstanding\b\s*/gi, 'even so, '],
+  [/\bnevertheless\s*,?\s*/gi, 'still, '],
+  [/\bnonetheless\s*,?\s*/gi, 'still, '],
+  [/\balbeit\b\s*/gi, 'although '],
+  [/\bwhereas\b\s*/gi, 'while '],
+  [/\bhence\s*,?\s*/gi, 'so '],
+  [/\bthus\s*,?\s*/gi, 'so '],
+  [/\bconsequently\s*,?\s*/gi, 'as a result, '],
+  [/\bsubsequently\s*,?\s*/gi, 'after that, '],
+  [/\bfurthermore\s*,?\s*/gi, 'also, '],
+  [/\bmoreover\s*,?\s*/gi, 'also, '],
+  [/\badditionally\s*,?\s*/gi, 'also, '],
+  [/\bin\s+conclusion\s*,?\s*/gi, 'to wrap up, '],
+  [/\bin\s+summary\s*,?\s*/gi, 'in short, '],
+  [/\bto\s+summarize\s*,?\s*/gi, 'basically, '],
+  [/\bultimately\s*,?\s*/gi, 'in the end, '],
+  [/\bcommence\b\s*/gi, 'start '],
+  [/\bcommences\b\s*/gi, 'starts '],
+  [/\bcommenced\b\s*/gi, 'started '],
+  [/\bterminate\b\s*/gi, 'end '],
+  [/\bobtain\b\s*/gi, 'get '],
+  [/\bobtains\b\s*/gi, 'gets '],
+  [/\bobtained\b\s*/gi, 'got '],
+  [/\bprovide\b\s*/gi, 'give '],
+  [/\bprovides\b\s*/gi, 'gives '],
+  [/\bprovided\b\s*/gi, 'gave '],
+  [/\bproviding\b\s*/gi, 'giving '],
+  [/\brequires?\s*/gi, 'needs '],
+  [/\brequired\b\s*/gi, 'needed '],
+  [/\bconsider\s+the\s+/gi, 'think about the '],
+  [/\bresides?\s+in\s+the\s+fact\s*/gi, 'is because '],
+  [/\bnotable\b\s*/gi, 'real '],
+  [/\bthis\s+(essay|paper|article|analysis|study|report)\s*/gi, 'this '],
+];
+
+// Step 3: Grammar repair — fix broken collocations created by replacements
+const GRAMMAR_FIXES = [
+  [/\bkeeps?\s+smooth\s+(integration|connection|process|flow|operation)\b/gi, (m, noun) => 'keeps ' + noun + ' smooth'],
+  [/\busing\s+latest\b/gi, 'using the latest'],
+  [/\buse\s+latest\b/gi, 'use the latest'],
+  [/\bthese\s+new\s+approach\b/gi, 'these new approaches'],
+  [/\bnew\s+approach\s+(use|uses|used|using)\b/gi, (m, v) => 'new approaches ' + v],
+  // "will greatly improve" not "will greatly improve" — actually fine
+  // "greatly improve" is fine, "greatly upgrade/boost/strengthen" is fine
+  // Fix "a lot improve/enhance/boost" -> "greatly improve"
+  [/\ba\s+lot\s+(improve|enhance|boost|strengthen|upgrade|increase|expand|grow|help|support|enable|build)\b/gi, (_, v) => 'greatly ' + v],
+  [/\ba\s+lot\s+of\s+(improve|help)\b/gi, (_, v) => 'greatly ' + v],
+  [/\bmake\s+sure\s+best\b/gi, 'guarantee the best'],
+  [/\bmakes\s+sure\s+best\b/gi, 'guarantees the best'],
+  // Fix "make sure smooth" -> "make sure it's smooth"
+  [/\bmakes?\s+sure\s+(smooth|easy|simple|fast|quick|clean|best|great|optimal)\s+(integration|transition|process|flow|operation|experience)\b/gi, (m, adj, noun) => 'keeps ' + noun + ' smooth'],
+  [/\bmakes?\s+sure\s+(smooth|easy|simple|fast|quick|clean|best|great|optimal)\b/gi, (_, adj) => 'keeps things ' + adj],
+  // Fix "is key role" -> "is key"
+  [/\bis\s+key\s+role\b/gi, 'is key'],
+  // Fix double "to to"
+  [/\bto\s+to\s+/gi, 'to '],
+  // Fix "help help"
+  [/\bhelp\s+help\b/gi, 'help'],
+  // Fix "in in"
+  [/\bin\s+in\s+/gi, 'in '],
+  // Fix "also, also,"
+  [/\balso,\s+also,\s*/gi, 'also, '],
+  // Fix trailing comma before period
+  [/,\s*\./g, '.'],
+  // Fix "to wrap up, to wrap up"
+  [/to wrap up,\s+to wrap up,\s*/gi, 'to wrap up, '],
+  // Fix "in short, in short"
+  [/in short,\s+in short,\s*/gi, 'in short, '],
+  // Fix orphaned "that" at start of sentence (from dropping "it is worth noting that")
+  [/(^|(?<=[.!?]\s+))([Tt]hat\s+)/g, '$1'],
+  // Fix double spaces
+  [/\s{2,}/g, ' '],
+  // Fix space before punctuation
+  [/\s+([.,!?;:])/g, '$1'],
+  // Fix ", ," double comma
+  [/,\s*,/g, ','],
+  // Fix ". ." double period
+  [/\.\s*\./g, '.'],
 ];
 
 // AI writing style signatures (for detection)
@@ -377,6 +476,39 @@ function humanizeText(text) {
     .replace(/  +/g, " ")
     .replace(/,\s*,/g, ",")
     .replace(/\.\s*\./g, ".")
+    .trim();
+
+  return result;
+}
+
+
+function humanizeText(text) {
+  let result = text;
+
+  // Pass 1: Apply all phrase replacements
+  for (const [pattern, replacement] of PHRASE_MAP) {
+    result = result.replace(pattern, replacement);
+  }
+
+  // Pass 2: Apply contractions
+  for (const [pattern, replacement] of CONTRACTIONS) {
+    result = result.replace(pattern, replacement);
+  }
+
+  // Pass 3: Grammar repairs
+  for (const [pattern, replacement] of GRAMMAR_FIXES) {
+    result = result.replace(pattern, replacement);
+  }
+
+  // Pass 4: Re-capitalise sentence starts
+  result = result.replace(/(^|[.!?]\s+)([a-z])/g, (_, sep, letter) => sep + letter.toUpperCase());
+
+  // Pass 5: Final cleanup
+  result = result
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+([.,!?;:])/g, '$1')
+    .replace(/,\s*,/g, ',')
+    .replace(/\.\s*\./g, '.')
     .trim();
 
   return result;
@@ -1695,6 +1827,7 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
+  // ── GET /  (serve frontend or API docs) ───────
   if (req.method === "GET" && (pathname === "/" || pathname === "/index.html")) {
     res.writeHead(200, { "Content-Type": "text/html" });
     return res.end(HTML);
