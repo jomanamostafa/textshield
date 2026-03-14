@@ -6,6 +6,8 @@
  
 const http = require("http");
 const url = require("url");
+const path = require("path");
+const fs = require("fs");
  
 // ─────────────────────────────────────────────
 //  NLP UTILITIES
@@ -623,33 +625,23 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
  
-  // ── GET /  (health + docs) ──────────────────
-  if (req.method === "GET" && pathname === "/") {
+  // ── GET /  (serve frontend or API docs) ───────
+  if (req.method === "GET" && (pathname === "/" || pathname === "/index.html")) {
+    const htmlPath = path.join(__dirname, "public", "index.html");
+    if (fs.existsSync(htmlPath)) {
+      const data = fs.readFileSync(htmlPath);
+      res.writeHead(200, { "Content-Type": "text/html" });
+      return res.end(data);
+    }
     return sendJSON(res, 200, {
       name: "TextShield API",
       version: "1.0.0",
       description: "Rule-based NLP: AI humanizer, AI detector, plagiarism checker",
       endpoints: {
-        "POST /humanize": {
-          description: "Convert AI-generated text to human-sounding text",
-          body: { text: "string (required)" },
-          returns: { humanizedText: "string", changesCount: "number", original: "string" },
-        },
-        "POST /detect": {
-          description: "Detect whether text is AI-generated",
-          body: { text: "string (required)" },
-          returns: { aiProbability: "0-100", humanProbability: "0-100", verdict: "string", signals: "object" },
-        },
-        "POST /plagiarism": {
-          description: "Check text for plagiarism",
-          body: { text: "string (required)", compareTexts: "string[] (optional)" },
-          returns: { originalityScore: "0-100", plagiarismScore: "0-100", verdict: "string", matches: "array" },
-        },
-        "POST /analyze": {
-          description: "Run all three checks at once",
-          body: { text: "string (required)", compareTexts: "string[] (optional)" },
-          returns: { humanize: "object", detect: "object", plagiarism: "object" },
-        },
+        "POST /humanize": { description: "Convert AI-generated text to human-sounding text" },
+        "POST /detect": { description: "Detect whether text is AI-generated" },
+        "POST /plagiarism": { description: "Check text for plagiarism" },
+        "POST /analyze": { description: "Run all three checks at once" },
       },
     });
   }
@@ -768,8 +760,8 @@ const server = http.createServer(async (req, res) => {
 });
  
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`\n  TextShield API running on http://localhost:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n  TextShield API running on port ${PORT}`);
   console.log(`  Endpoints: GET / | POST /humanize | POST /detect | POST /plagiarism | POST /analyze\n`);
 });
  
