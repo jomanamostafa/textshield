@@ -1,0 +1,48 @@
+{
+  "name": "textshield",
+  "version": "1.0.0",
+  "description": "AI humanizer, detector and plagiarism checker",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
+```
+
+---
+
+**How to upload — step by step:**
+
+**1. Create the repo**
+1. Go to **github.com** and sign in
+2. Click the **+** icon top right → **New repository**
+3. Name it `textshield`
+4. Set it to **Public**
+5. Check **"Add a README file"**
+6. Click **Create repository**
+
+---
+
+**2. Upload your files**
+1. Inside your new repo click **"Add file"** → **"Upload files"**
+2. Drag and drop all 3 files:
+   - `server.js`
+   - `index.html`
+   - `package.json`
+3. Scroll down to **"Commit changes"**
+4. Click the green **"Commit changes"** button
+
+---
+
+**3. Verify**
+
+Your repo should look like this:
+```
+textshield/
+├── server.js
+├── index.html
+├── package.json
+└── README.md
