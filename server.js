@@ -3,16 +3,16 @@
  * Pure rule-based NLP. No external AI APIs required.
  * Run: node server.js
  */
- 
+
 const http = require("http");
 const url = require("url");
 const path = require("path");
 const fs = require("fs");
- 
+
 // ─────────────────────────────────────────────
 //  NLP UTILITIES
 // ─────────────────────────────────────────────
- 
+
 const SYNONYMS = {
   utilize: ["use", "apply", "employ", "leverage"],
   implement: ["use", "carry out", "apply", "set up", "put in place"],
@@ -81,15 +81,23 @@ const SYNONYMS = {
   analyse: ["study", "look at", "examine", "break down"],
   analyze: ["study", "look at", "examine", "break down"],
 };
- 
+
 // Phrases typical of AI-generated text → human replacements
 const PHRASE_REPLACEMENTS = [
   [/\bit's worth pointing out\b/gi, "it's good to note"],
-  [/\bdemonstr(ate|ates|ated|ating|ation)\b/gi, (m) => ({ demonstrate:"show", demonstrates:"shows", demonstrated:"showed", demonstrating:"showing", demonstration:"example" })[m.toLowerCase()] || "show"],
+  [/\bdemonstrates\b/gi, "shows"],
+  [/\bdemonstrated\b/gi, "showed"],
+  [/\bdemonstrating\b/gi, "showing"],
+  [/\bdemonstration\b/gi, "example"],
+  [/\bdemonstrate\b/gi, "show"],
   [/\bsubstantially\b/gi, "a lot"],
   [/\bsignificantly\b/gi, "a lot"],
   [/\bit's worth pointing out that\b/gi, "worth pointing out:"],
-  [/\butiliz(e|es|ed|ing|ation)\b/gi, (m) => ({ utilize:"use", utilizes:"uses", utilized:"used", utilizing:"using", utilization:"use" })[m.toLowerCase()] || "use"],
+  [/\butilizes\b/gi, "uses"],
+  [/\butilized\b/gi, "used"],
+  [/\butilizing\b/gi, "using"],
+  [/\butilization\b/gi, "use"],
+  [/\butilize\b/gi, "use"],
   [/\bMoreover,\s*/g, "Also, "],
   [/\bmoreover,\s*/g, "also, "],
   [/\bFurthermore,\s*/g, "Plus, "],
@@ -166,7 +174,9 @@ const PHRASE_REPLACEMENTS = [
   [/\bit should be noted\b/gi, "note that"],
   [/\bgoing forward\b/gi, "from now on"],
   [/\bmoving forward\b/gi, "from here"],
-  [/\bleverag(e|ing)\b/gi, (m) => m.toLowerCase().endsWith("ing") ? "using" : "use"],
+  [/\bleveraging\b/gi, "using"],
+  [/\bleveraged\b/gi, "used"],
+  [/\bleverage\b/gi, "use"],
   [/\bsynergy\b/gi, "teamwork"],
   [/\bparadigm\b/gi, "model"],
   [/\bbest practices\b/gi, "proven methods"],
@@ -200,7 +210,7 @@ const PHRASE_REPLACEMENTS = [
   [/\bnavigate\b/gi, "work through"],
   [/\btackle\b/gi, "handle"],
 ];
- 
+
 // AI writing style signatures (for detection)
 const AI_SIGNALS = [
   /\bdelve\b/i,
@@ -271,7 +281,7 @@ const AI_SIGNALS = [
   /\bworthwhile\b/i,
   /\bpresents? (a|an) (unique|compelling|interesting|significant)\b/i,
 ];
- 
+
 // Contractions map for humanizing formal text
 const CONTRACTIONS = [
   [/\bI am\b/g, "I'm"],
@@ -312,19 +322,19 @@ const CONTRACTIONS = [
   [/\bhas not\b/gi, "hasn't"],
   [/\bhad not\b/gi, "hadn't"],
 ];
- 
+
 // ─────────────────────────────────────────────
 //  CORE ENGINE: HUMANIZER
 // ─────────────────────────────────────────────
- 
+
 function humanizeText(text) {
   let result = text;
- 
+
   // 1. Apply phrase-level replacements first (longest match first)
   for (const [pattern, replacement] of PHRASE_REPLACEMENTS) {
     result = result.replace(pattern, replacement);
   }
- 
+
   // 2. Replace formal synonyms word by word
   result = result.replace(/\b([a-zA-Z]+)\b/g, (word) => {
     const lower = word.toLowerCase();
@@ -339,48 +349,48 @@ function humanizeText(text) {
     }
     return word;
   });
- 
+
   // 3. Apply contractions
   for (const [pattern, replacement] of CONTRACTIONS) {
     result = result.replace(pattern, replacement);
   }
- 
+
   // 4. Vary sentence openers — handle transitional starters not already replaced
   result = result
     .replace(/^(Furthermore|Moreover|Additionally|However|Nevertheless|Notwithstanding),?\s+/gim, (_, word) => {
       const casual = { Furthermore: "Also,", Moreover: "Plus,", Additionally: "And,", However: "But,", Nevertheless: "Still,", Notwithstanding: "Even so," };
       return (casual[word] || word) + " ";
     });
- 
+
   // 5. Break overly long sentences (>40 words) at conjunctions
   result = result.replace(/([^.!?]{200,}?)(\s+(?:and|but|which|that|because|so|although)\s+)/gi, (match, before, conj) => {
     const trimConj = conj.trim();
     const starters = { and: "Also,", but: "But", which: "This", that: "That", because: "This is because", so: "So", although: "Although" };
     return before + ". " + (starters[trimConj.toLowerCase()] || trimConj.charAt(0).toUpperCase() + trimConj.slice(1)) + " ";
   });
- 
+
   // 7. Re-capitalise sentence starts (replacements may have lowercased them)
   result = result.replace(/(^|[.!?]\s+)([a-z])/g, (match, sep, letter) => sep + letter.toUpperCase());
- 
+
   // 8. Clean up any double spaces or punctuation artifacts
   result = result
     .replace(/  +/g, " ")
     .replace(/,\s*,/g, ",")
     .replace(/\.\s*\./g, ".")
     .trim();
- 
+
   return result;
 }
- 
+
 // ─────────────────────────────────────────────
 //  CORE ENGINE: AI DETECTOR
 // ─────────────────────────────────────────────
- 
+
 function detectAI(text) {
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
   const words = text.toLowerCase().split(/\s+/);
   const wordCount = words.length;
- 
+
   // Signal 1: AI keyword density
   let signalHits = 0;
   const matchedSignals = [];
@@ -393,7 +403,7 @@ function detectAI(text) {
   // Score by density per 100 words (5 hits per 100 words = very AI-like)
   const signalDensity = (signalHits / Math.max(wordCount, 1)) * 100;
   const signalScore = Math.min(signalDensity / 5, 1);
- 
+
   // Signal 2: Sentence length uniformity (AI tends to be very uniform)
   const sentLengths = sentences.map((s) => s.trim().split(/\s+/).length);
   const avgLen = sentLengths.reduce((a, b) => a + b, 0) / sentLengths.length;
@@ -401,35 +411,35 @@ function detectAI(text) {
   const stdDev = Math.sqrt(variance);
   // Low std deviation = uniform = more AI-like
   const uniformityScore = Math.max(0, 1 - stdDev / 8);
- 
+
   // Signal 3: Passive voice density
   const passiveMatches = text.match(/\b(is|are|was|were|be|been|being)\s+\w+ed\b/gi) || [];
   const passiveScore = Math.min(passiveMatches.length / Math.max(sentences.length, 1) / 0.5, 1);
- 
+
   // Signal 4: Transition word density
   const transitionWords = text.match(/\b(furthermore|moreover|additionally|nevertheless|notwithstanding|subsequently|consequently|therefore|thus|hence|whereas|albeit)\b/gi) || [];
   const transitionScore = Math.min(transitionWords.length / Math.max(wordCount / 100, 1) / 3, 1);
- 
+
   // Signal 5: Repeated structure — check for similar sentence starters
   const starters = sentences.map((s) => s.trim().split(/\s+/).slice(0, 2).join(" ").toLowerCase());
   const uniqueStarters = new Set(starters).size;
   const repetitionScore = sentences.length > 3 ? Math.max(0, 1 - uniqueStarters / sentences.length) : 0;
- 
+
   // Signal 6: Lexical richness (AI often has high vocabulary diversity but low colloquialism)
   const uniqueWords = new Set(words.filter((w) => w.length > 3)).size;
   const lexicalRichness = uniqueWords / Math.max(wordCount, 1);
   // Moderate-high richness (0.5-0.75) is AI-like
   const lexScore = lexicalRichness > 0.45 && lexicalRichness < 0.8 ? 0.5 : 0.2;
- 
+
   // Signal 7: Formal phrase patterns (collocations typical in AI)
   const formalPhrases = text.match(/\b(play(s)? a (crucial|key|vital|important|significant) role|best practices|going forward|moving forward|in the context of|with respect to|it is (worth|important) (noting|to note)|state.of.the.art|cutting.edge|innovative solution|holistic approach|key takeaway|at the end of the day|in order to|due to the fact that|it should be noted|as previously mentioned|in this (essay|article|paper)|when it comes to)\b/gi) || [];
   const formalScore = Math.min(formalPhrases.length * 0.25, 1);
- 
+
   // Weighted composite score
   // uniformity alone can't drive a high score — only meaningful combined with other signals
   const hasOtherSignals = signalScore > 0.1 || transitionScore > 0.1 || formalScore > 0.1;
   const adjustedUniformity = hasOtherSignals ? uniformityScore : uniformityScore * 0.25;
- 
+
   const aiProbability =
     signalScore * 55 +
     adjustedUniformity * 12 +
@@ -438,9 +448,9 @@ function detectAI(text) {
     repetitionScore * 7 +
     lexScore * 3 +
     formalScore * 8;
- 
+
   const aiPercent = Math.min(Math.max(Math.round(aiProbability), 0), 100);
- 
+
   return {
     aiProbability: aiPercent,
     humanProbability: 100 - aiPercent,
@@ -460,11 +470,11 @@ function detectAI(text) {
     avgWordsPerSentence: Math.round(avgLen),
   };
 }
- 
+
 // ─────────────────────────────────────────────
 //  CORE ENGINE: PLAGIARISM CHECKER
 // ─────────────────────────────────────────────
- 
+
 // Simulates structural plagiarism analysis (n-gram fingerprinting)
 // In production, wire this to a real corpus/search index.
 function checkPlagiarism(text, compareTexts = []) {
@@ -474,7 +484,7 @@ function checkPlagiarism(text, compareTexts = []) {
       .replace(/[^a-z0-9\s]/g, "")
       .replace(/\s+/g, " ")
       .trim();
- 
+
   const getNgrams = (text, n) => {
     const words = normalize(text).split(" ");
     const grams = [];
@@ -483,31 +493,31 @@ function checkPlagiarism(text, compareTexts = []) {
     }
     return new Set(grams);
   };
- 
+
   // Fingerprint the input
   const trigrams = getNgrams(text, 3);
   const fivegrams = getNgrams(text, 5);
   const wordSet = new Set(normalize(text).split(" ").filter((w) => w.length > 4));
- 
+
   // Structural analysis: detect copy-paste patterns
   const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
- 
+
   let similarities = [];
- 
+
   if (compareTexts.length > 0) {
     // Compare against provided texts
     for (let i = 0; i < compareTexts.length; i++) {
       const compareTrigrams = getNgrams(compareTexts[i], 3);
       const compareFivegrams = getNgrams(compareTexts[i], 5);
- 
+
       const trigramOverlap = [...trigrams].filter((g) => compareTrigrams.has(g)).length;
       const fivegramOverlap = [...fivegrams].filter((g) => compareFivegrams.has(g)).length;
- 
+
       const trigramSim = trigrams.size > 0 ? trigramOverlap / trigrams.size : 0;
       const fivegramSim = fivegrams.size > 0 ? fivegramOverlap / fivegrams.size : 0;
- 
+
       const simScore = Math.round((trigramSim * 0.4 + fivegramSim * 0.6) * 100);
- 
+
       if (simScore > 5) {
         similarities.push({
           source: `Document ${i + 1}`,
@@ -525,7 +535,7 @@ function checkPlagiarism(text, compareTexts = []) {
     const sentenceHashes = sentences.map((s) => normalize(s));
     const seen = new Map();
     const internalDups = [];
- 
+
     for (const s of sentenceHashes) {
       const words = s.split(" ");
       for (let n = 5; n <= Math.min(words.length, 10); n++) {
@@ -539,13 +549,13 @@ function checkPlagiarism(text, compareTexts = []) {
         }
       }
     }
- 
+
     const uniqueDups = [...new Set(internalDups)];
- 
+
     // Estimate originality score
     const repetitionRate = uniqueDups.length / Math.max(trigrams.size, 1);
     const internalScore = Math.min(Math.round(repetitionRate * 80), 30);
- 
+
     if (internalScore > 5) {
       similarities.push({
         source: "Internal repetition",
@@ -554,10 +564,10 @@ function checkPlagiarism(text, compareTexts = []) {
       });
     }
   }
- 
+
   const maxSimilarity = similarities.length > 0 ? Math.max(...similarities.map((s) => s.similarity)) : 0;
   const overallScore = compareTexts.length > 0 ? maxSimilarity : Math.min(maxSimilarity, 25);
- 
+
   return {
     originalityScore: 100 - overallScore,
     plagiarismScore: overallScore,
@@ -585,11 +595,11 @@ function checkPlagiarism(text, compareTexts = []) {
     },
   };
 }
- 
+
 // ─────────────────────────────────────────────
 //  HTTP SERVER
 // ─────────────────────────────────────────────
- 
+
 function sendJSON(res, status, data) {
   res.writeHead(status, {
     "Content-Type": "application/json",
@@ -599,7 +609,7 @@ function sendJSON(res, status, data) {
   });
   res.end(JSON.stringify(data, null, 2));
 }
- 
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -614,17 +624,17 @@ function readBody(req) {
     req.on("error", reject);
   });
 }
- 
+
 const server = http.createServer(async (req, res) => {
   const parsed = url.parse(req.url, true);
   const pathname = parsed.pathname;
- 
+
   // CORS preflight
   if (req.method === "OPTIONS") {
     res.writeHead(204, { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "GET, POST, OPTIONS", "Access-Control-Allow-Headers": "Content-Type" });
     return res.end();
   }
- 
+
   // ── GET /  (serve frontend or API docs) ───────
   if (req.method === "GET" && (pathname === "/" || pathname === "/index.html")) {
     const htmlPath = path.join(__dirname, "public", "index.html");
@@ -645,7 +655,7 @@ const server = http.createServer(async (req, res) => {
       },
     });
   }
- 
+
   // ── POST /humanize ──────────────────────────
   if (req.method === "POST" && pathname === "/humanize") {
     try {
@@ -656,10 +666,10 @@ const server = http.createServer(async (req, res) => {
       if (body.text.trim().length < 10) {
         return sendJSON(res, 400, { error: "Text too short (minimum 10 characters)" });
       }
- 
+
       const original = body.text;
       const humanized = humanizeText(original);
- 
+
       // Count actual changes
       const origWords = original.split(/\s+/);
       const newWords = humanized.split(/\s+/);
@@ -668,7 +678,7 @@ const server = http.createServer(async (req, res) => {
       for (let i = 0; i < maxLen; i++) {
         if (origWords[i] !== newWords[i]) changes++;
       }
- 
+
       return sendJSON(res, 200, {
         success: true,
         original,
@@ -681,7 +691,7 @@ const server = http.createServer(async (req, res) => {
       return sendJSON(res, 400, { error: e.message });
     }
   }
- 
+
   // ── POST /detect ───────────────────────────
   if (req.method === "POST" && pathname === "/detect") {
     try {
@@ -692,14 +702,14 @@ const server = http.createServer(async (req, res) => {
       if (body.text.trim().split(/\s+/).length < 20) {
         return sendJSON(res, 400, { error: "Text too short for reliable detection (minimum ~20 words)" });
       }
- 
+
       const result = detectAI(body.text);
       return sendJSON(res, 200, { success: true, ...result });
     } catch (e) {
       return sendJSON(res, 400, { error: e.message });
     }
   }
- 
+
   // ── POST /plagiarism ───────────────────────
   if (req.method === "POST" && pathname === "/plagiarism") {
     try {
@@ -710,7 +720,7 @@ const server = http.createServer(async (req, res) => {
       if (body.text.trim().length < 50) {
         return sendJSON(res, 400, { error: "Text too short for plagiarism analysis (minimum 50 characters)" });
       }
- 
+
       const compareTexts = Array.isArray(body.compareTexts) ? body.compareTexts.filter((t) => typeof t === "string") : [];
       const result = checkPlagiarism(body.text, compareTexts);
       return sendJSON(res, 200, { success: true, ...result });
@@ -718,7 +728,7 @@ const server = http.createServer(async (req, res) => {
       return sendJSON(res, 400, { error: e.message });
     }
   }
- 
+
   // ── POST /analyze (all-in-one) ─────────────
   if (req.method === "POST" && pathname === "/analyze") {
     try {
@@ -726,9 +736,9 @@ const server = http.createServer(async (req, res) => {
       if (!body.text || typeof body.text !== "string") {
         return sendJSON(res, 400, { error: "Missing or invalid 'text' field" });
       }
- 
+
       const compareTexts = Array.isArray(body.compareTexts) ? body.compareTexts.filter((t) => typeof t === "string") : [];
- 
+
       const original = body.text;
       const humanized = humanizeText(original);
       const origWords = original.split(/\s+/);
@@ -738,7 +748,7 @@ const server = http.createServer(async (req, res) => {
       for (let i = 0; i < maxLen; i++) {
         if (origWords[i] !== newWords[i]) changes++;
       }
- 
+
       return sendJSON(res, 200, {
         success: true,
         humanize: {
@@ -754,15 +764,15 @@ const server = http.createServer(async (req, res) => {
       return sendJSON(res, 400, { error: e.message });
     }
   }
- 
+
   // 404
   return sendJSON(res, 404, { error: "Endpoint not found", availableEndpoints: ["/", "/humanize", "/detect", "/plagiarism", "/analyze"] });
 });
- 
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n  TextShield API running on port ${PORT}`);
   console.log(`  Endpoints: GET / | POST /humanize | POST /detect | POST /plagiarism | POST /analyze\n`);
 });
- 
+
 module.exports = { humanizeText, detectAI, checkPlagiarism };
