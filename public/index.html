@@ -457,7 +457,6 @@
           <div class="card-label">Humanized Output</div>
           <div class="result-area" id="humanizeResult">
             <span class="result-placeholder">Humanized text will appear here...</span>
-            <button class="copy-result" onclick="copyResult('humanizeResult')" style="display:none" id="copyHumanize">Copy</button>
           </div>
           <div class="metrics-grid" id="humanizeMetrics" style="display:none">
             <div class="metric">
@@ -757,15 +756,14 @@ function copyApiUrl() {
 
 function copyResult(id) {
   const el = document.getElementById(id);
-  navigator.clipboard.writeText(el.innerText.replace('Copy','').trim());
+  if (el) navigator.clipboard.writeText(el.innerText.replace('Copy','').replace('Copied!','').trim());
 }
 
 function clearField(inputId, resultId) {
   document.getElementById(inputId).value = '';
   document.getElementById(resultId).innerHTML = '<span class="result-placeholder">Humanized text will appear here...</span>';
-  document.getElementById('humanizeMetrics').style.display = 'none';
-  const cb = document.getElementById('copyHumanize');
-  if (cb) cb.remove();
+  const m = document.getElementById('humanizeMetrics');
+  if (m) m.style.display = 'none';
 }
 
 // ── Samples ──
@@ -795,23 +793,13 @@ async function runHumanize() {
     if (!r.ok) throw new Error(data.error || 'Server error');
 
     const el = document.getElementById('humanizeResult');
-    el.innerHTML = '';
-    const textNode = document.createTextNode(data.humanizedText);
-    el.appendChild(textNode);
-
-    // Re-create copy button (safe — no null reference)
-    const oldBtn = document.getElementById('copyHumanize');
-    if (oldBtn) oldBtn.remove();
-    const copyBtn = document.createElement('button');
-    copyBtn.className = 'copy-result';
-    copyBtn.id = 'copyHumanize';
-    copyBtn.textContent = 'Copy';
-    copyBtn.onclick = () => {
+    el.innerHTML = '<button class="copy-result" id="copyHumanize">Copy</button>';
+    el.insertBefore(document.createTextNode(data.humanizedText), el.firstChild);
+    document.getElementById('copyHumanize').onclick = () => {
       navigator.clipboard.writeText(data.humanizedText);
-      copyBtn.textContent = 'Copied!';
-      setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+      document.getElementById('copyHumanize').textContent = 'Copied!';
+      setTimeout(() => { const b = document.getElementById('copyHumanize'); if(b) b.textContent = 'Copy'; }, 1500);
     };
-    el.appendChild(copyBtn);
 
     document.getElementById('h-changes').textContent = data.changesCount;
     document.getElementById('h-changerate').textContent = data.changeRate;
