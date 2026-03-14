@@ -1,4 +1,5 @@
 # TextShield 🛡️
+![UI](UI.png)
 
 A complete AI text analysis toolkit with three powerful tools:
 
