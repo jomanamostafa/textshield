@@ -600,6 +600,1066 @@ function checkPlagiarism(text, compareTexts = []) {
 //  HTTP SERVER
 // ─────────────────────────────────────────────
 
+const HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TextShield — AI Text Tools</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --surface3: #22222f;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0eff8;
+    --muted: #7a798e;
+    --accent: #7c6ef7;
+    --accent2: #a594f9;
+    --green: #34d399;
+    --red: #f87171;
+    --amber: #fbbf24;
+    --cyan: #22d3ee;
+    --font-display: 'Syne', sans-serif;
+    --font-serif: 'Instrument Serif', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-display);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BG ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,110,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,110,247,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(124,110,247,0.12) 0%, transparent 70%);
+    top: -200px; left: -200px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .glow2 {
+    position: fixed;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(34,211,238,0.07) 0%, transparent 70%);
+    bottom: -100px; right: -100px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── HEADER ── */
+  header {
+    padding: 32px 0 20px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--cyan));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .api-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent2);
+    background: rgba(124,110,247,0.12);
+    border: 1px solid rgba(124,110,247,0.25);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 48px 0 40px;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 12px; color: var(--accent2);
+    background: rgba(124,110,247,0.1);
+    border: 1px solid rgba(124,110,247,0.2);
+    padding: 5px 14px; border-radius: 20px;
+    margin-bottom: 20px;
+  }
+  .hero-eyebrow::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+  }
+  h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--accent2); }
+  .hero-sub { font-size: 16px; color: var(--muted); max-width: 480px; margin: 0 auto 32px; line-height: 1.6; }
+
+  /* ── SERVER STATUS ── */
+  .server-status {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--muted); margin-bottom: 12px;
+  }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .status-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .status-dot.offline { background: var(--red); }
+
+  /* ── API URL BAR ── */
+  .api-url-bar {
+    display: flex; align-items: center; gap: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 40px;
+    max-width: 480px; margin-left: auto; margin-right: auto;
+  }
+  .api-url-bar input {
+    flex: 1; background: none; border: none; outline: none;
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--text);
+  }
+  .copy-btn {
+    background: rgba(124,110,247,0.15); border: 1px solid rgba(124,110,247,0.3);
+    color: var(--accent2); font-size: 12px; font-family: var(--font-mono);
+    padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(124,110,247,0.25); }
+
+  /* ── TABS ── */
+  .tabs-row {
+    display: flex; gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 4px;
+    margin-bottom: 28px;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px 8px;
+    background: none; border: none;
+    color: var(--muted); font-family: var(--font-display); font-size: 13px; font-weight: 600;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active {
+    background: var(--surface3);
+    color: var(--text);
+    border: 1px solid var(--border2);
+  }
+  .tab-icon { font-size: 14px; }
+
+  /* ── PANELS ── */
+  .panel { display: none; }
+  .panel.active { display: block; animation: fadeUp 0.25s ease; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+
+  .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 700px) { .panel-grid { grid-template-columns: 1fr; } }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+  .card-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  /* ── TEXTAREA ── */
+  textarea {
+    width: 100%; min-height: 180px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    font-family: var(--font-mono); font-size: 13px; line-height: 1.7;
+    color: var(--text); resize: vertical; outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea:focus { border-color: var(--border2); }
+  textarea::placeholder { color: var(--muted); }
+
+  /* ── BUTTONS ── */
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 10px 20px; border-radius: 8px;
+    font-family: var(--font-display); font-size: 13px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; border: none;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #9f8ef9);
+    color: white;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,110,247,0.35); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-secondary {
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--muted);
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--border2); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESULT AREA ── */
+  .result-area {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px;
+    font-family: var(--font-mono); font-size: 13px; line-height: 1.7;
+    color: var(--text); min-height: 80px;
+    white-space: pre-wrap; word-break: break-word;
+    position: relative;
+  }
+  .result-placeholder { color: var(--muted); font-style: italic; }
+
+  /* ── METRICS ── */
+  .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+  .metric {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px;
+    text-align: center;
+  }
+  .metric-val { font-size: 24px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+  /* ── VERDICT BADGE ── */
+  .verdict {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700;
+    padding: 8px 16px; border-radius: 8px;
+    margin-top: 14px;
+  }
+  .verdict-ai { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+  .verdict-mixed { background: rgba(251,191,36,0.15); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
+  .verdict-human { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+
+  /* ── SIGNAL BARS ── */
+  .signals { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .signal-row { display: flex; align-items: center; gap: 10px; }
+  .signal-name { font-size: 11px; color: var(--muted); width: 160px; flex-shrink: 0; }
+  .signal-bar-bg { flex: 1; height: 6px; background: var(--surface3); border-radius: 4px; overflow: hidden; }
+  .signal-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .signal-val { font-family: var(--font-mono); font-size: 11px; color: var(--muted); width: 32px; text-align: right; }
+
+  /* ── KEYWORDS ── */
+  .keywords { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .kw {
+    font-family: var(--font-mono); font-size: 11px;
+    background: rgba(248,113,113,0.1); color: var(--red);
+    border: 1px solid rgba(248,113,113,0.2);
+    padding: 3px 8px; border-radius: 5px;
+  }
+
+  /* ── PLAGIARISM MATCHES ── */
+  .match-card {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px; margin-top: 10px;
+  }
+  .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .match-source { font-size: 13px; font-weight: 600; color: var(--text); }
+  .match-pct { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
+  .match-phrases { font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8; }
+
+  /* ── COMPARE SECTION ── */
+  .compare-add { margin-top: 12px; }
+  .compare-item { display: flex; gap: 8px; margin-bottom: 8px; }
+  .compare-item textarea { min-height: 80px; }
+  .compare-item .btn { align-self: flex-start; padding: 8px 12px; flex-shrink: 0; }
+
+  /* ── ANALYZE TAB ── */
+  .all-results { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+  .all-section {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px;
+  }
+  .all-section-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--accent2);
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* ── API DOCS ── */
+  .docs-section { margin-bottom: 24px; }
+  .endpoint {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 12px;
+  }
+  .endpoint-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; cursor: pointer;
+    border-bottom: 1px solid transparent; transition: all 0.2s;
+  }
+  .endpoint-header:hover { background: var(--surface2); }
+  .method {
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    padding: 3px 8px; border-radius: 5px;
+  }
+  .method-post { background: rgba(124,110,247,0.2); color: var(--accent2); }
+  .method-get { background: rgba(52,211,153,0.2); color: var(--green); }
+  .endpoint-path { font-family: var(--font-mono); font-size: 14px; font-weight: 500; }
+  .endpoint-desc { font-size: 13px; color: var(--muted); margin-left: auto; }
+  .endpoint-body {
+    padding: 16px 18px;
+    border-top: 1px solid var(--border);
+    display: none;
+  }
+  .endpoint-body.open { display: block; }
+  pre {
+    background: var(--surface3);
+    border-radius: 8px; padding: 14px;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--text); overflow-x: auto; line-height: 1.8;
+    margin-top: 8px;
+  }
+  .code-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── COPY RESULT BTN ── */
+  .copy-result {
+    position: absolute; top: 8px; right: 8px;
+    background: var(--surface3); border: 1px solid var(--border2);
+    color: var(--muted); font-size: 11px; font-family: var(--font-mono);
+    padding: 3px 8px; border-radius: 5px; cursor: pointer; transition: all 0.2s;
+  }
+  .copy-result:hover { color: var(--text); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 40px 0 32px;
+    font-size: 12px; color: var(--muted);
+    border-top: 1px solid var(--border); margin-top: 60px;
+  }
+
+  /* ── PROGRESS RING ── */
+  .ring-wrap { position: relative; width: 90px; height: 90px; margin: 0 auto 10px; }
+  svg.ring { width: 90px; height: 90px; transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--surface3); stroke-width: 7; }
+  .ring-fill { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
+  .ring-text {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 800;
+  }
+</style>
+</head>
+<body>
+
+<div class="glow"></div>
+<div class="glow2"></div>
+
+<div class="wrapper">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🛡</div>
+      TextShield
+    </div>
+    <div class="api-badge">v1.0 · REST API</div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Rule-based NLP · No external AI APIs</div>
+    <h1>The <em>complete</em> text<br>intelligence toolkit</h1>
+    <p class="hero-sub">Humanize AI text, detect AI-generated content, and check plagiarism — all from one powerful API.</p>
+
+    <div class="server-status">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Checking server...</span>
+    </div>
+
+    <div class="api-url-bar">
+      <input type="text" id="apiUrlInput" value="" readonly>
+      <button class="copy-btn" onclick="copyApiUrl()">Copy</button>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs-row">
+    <button class="tab-btn active" onclick="switchTab('humanize', this)">
+      <span class="tab-icon">✦</span> Humanize
+    </button>
+    <button class="tab-btn" onclick="switchTab('detect', this)">
+      <span class="tab-icon">◉</span> AI Detect
+    </button>
+    <button class="tab-btn" onclick="switchTab('plagiarism', this)">
+      <span class="tab-icon">⊞</span> Plagiarism
+    </button>
+    <button class="tab-btn" onclick="switchTab('analyze', this)">
+      <span class="tab-icon">⚡</span> Full Analysis
+    </button>
+    <button class="tab-btn" onclick="switchTab('docs', this)">
+      <span class="tab-icon">⊡</span> API Docs
+    </button>
+  </div>
+
+  <!-- ─── HUMANIZE PANEL ─── -->
+  <div class="panel active" id="panel-humanize">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">AI Text Input</div>
+          <textarea id="humanizeInput" placeholder="Paste AI-generated text here. The engine will rewrite it to sound naturally human — replacing robotic phrases, adding contractions, varying structure..."></textarea>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="runHumanize()" id="humanizeBtn">
+              <span class="spinner" id="humanizeSpinner"></span>
+              Humanize Text
+            </button>
+            <button class="btn btn-secondary" onclick="clearField('humanizeInput', 'humanizeResult')">Clear</button>
+            <button class="btn btn-secondary" onclick="loadSample('humanize')">Load sample</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-label">Humanized Output</div>
+          <div class="result-area" id="humanizeResult">
+            <span class="result-placeholder">Humanized text will appear here...</span>
+          </div>
+          <div class="metrics-grid" id="humanizeMetrics" style="display:none">
+            <div class="metric">
+              <div class="metric-val" id="h-changes" style="color:var(--accent2)">—</div>
+              <div class="metric-label">Changes</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val" id="h-changerate" style="color:var(--cyan)">—</div>
+              <div class="metric-label">Change Rate</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val" id="h-words" style="color:var(--green)">—</div>
+              <div class="metric-label">Words</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── DETECT PANEL ─── -->
+  <div class="panel" id="panel-detect">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">Text to Analyse</div>
+          <textarea id="detectInput" placeholder="Paste any text to determine if it was written by a human or AI. Works best on 50+ words."></textarea>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="runDetect()" id="detectBtn">
+              <span class="spinner" id="detectSpinner"></span>
+              Detect AI
+            </button>
+            <button class="btn btn-secondary" onclick="clearDetect()">Clear</button>
+            <button class="btn btn-secondary" onclick="loadSample('detect')">Load sample</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-label">Detection Results</div>
+          <div id="detectResults">
+            <p style="color:var(--muted); font-size:13px;">Results will appear here after analysis.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PLAGIARISM PANEL ─── -->
+  <div class="panel" id="panel-plagiarism">
+    <div class="panel-grid">
+      <div>
+        <div class="card">
+          <div class="card-label">Primary Text</div>
+          <textarea id="plagInput" placeholder="Paste the text you want to check for plagiarism..."></textarea>
+
+          <div class="card-label" style="margin-top:16px">Comparison Documents (optional)</div>
+          <p style="font-size:12px; color:var(--muted); margin-bottom:10px">Add texts to compare against. Without them, internal repetition analysis runs.</p>
+          <div id="compareList"></div>
+          <button class="btn btn-secondary" onclick="addCompare()" style="margin-top:6px; font-size:12px; padding: 7px 14px;">+ Add comparison text</button>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="runPlagiarism()" id="plagBtn">
+              <span class="spinner" id="plagSpinner"></span>
+              Check Plagiarism
+            </button>
+            <button class="btn btn-secondary" onclick="clearPlag()">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-label">Plagiarism Results</div>
+          <div id="plagResults">
+            <p style="color:var(--muted); font-size:13px;">Results will appear here after checking.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── FULL ANALYSIS PANEL ─── -->
+  <div class="panel" id="panel-analyze">
+    <div class="card">
+      <div class="card-label">Text for Full Analysis</div>
+      <textarea id="analyzeInput" placeholder="Paste text for a complete report: humanization + AI detection + plagiarism analysis all at once..."></textarea>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="runAnalyze()" id="analyzeBtn">
+          <span class="spinner" id="analyzeSpinner"></span>
+          ⚡ Run Full Analysis
+        </button>
+        <button class="btn btn-secondary" onclick="loadSample('analyze')">Load sample</button>
+      </div>
+    </div>
+    <div id="analyzeResults"></div>
+  </div>
+
+  <!-- ─── DOCS PANEL ─── -->
+  <div class="panel" id="panel-docs">
+    <div class="docs-section">
+      <div class="card-label" style="margin-bottom:16px">API Reference</div>
+
+      <div class="endpoint">
+        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+          <span class="method method-get">GET</span>
+          <span class="endpoint-path">/</span>
+          <span class="endpoint-desc">Health check + API docs</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-label">Response</div>
+          <pre>{ "name": "TextShield API", "version": "1.0.0", "endpoints": { ... } }</pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+          <span class="method method-post">POST</span>
+          <span class="endpoint-path">/humanize</span>
+          <span class="endpoint-desc">Humanize AI text</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-label">Request body</div>
+          <pre>{
+  "text": "string (required) — the AI-generated text to humanize"
+}</pre>
+          <div class="code-label">Response</div>
+          <pre>{
+  "success": true,
+  "original": "string",
+  "humanizedText": "string",
+  "changesCount": 42,
+  "changeRate": "18%",
+  "wordCount": 230
+}</pre>
+          <div class="code-label">cURL example</div>
+          <pre>curl -X POST http://localhost:3000/humanize \\
+  -H "Content-Type: application/json" \\
+  -d '{"text": "Utilize this tool to facilitate better outcomes."}'</pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+          <span class="method method-post">POST</span>
+          <span class="endpoint-path">/detect</span>
+          <span class="endpoint-desc">Detect AI-generated text</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-label">Request body</div>
+          <pre>{
+  "text": "string (required) — minimum ~20 words for reliable results"
+}</pre>
+          <div class="code-label">Response</div>
+          <pre>{
+  "success": true,
+  "aiProbability": 87,
+  "humanProbability": 13,
+  "verdict": "AI Generated",
+  "confidence": "High",
+  "signals": {
+    "aiKeywordDensity": 72,
+    "sentenceUniformity": 65,
+    "passiveVoice": 40,
+    "transitionWordOveruse": 80,
+    "structureRepetition": 30,
+    "formalPhraseUsage": 60
+  },
+  "detectedKeywords": ["utilize", "facilitate", "furthermore"],
+  "wordCount": 150,
+  "sentenceCount": 8,
+  "avgWordsPerSentence": 19
+}</pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+          <span class="method method-post">POST</span>
+          <span class="endpoint-path">/plagiarism</span>
+          <span class="endpoint-desc">Check for plagiarism</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-label">Request body</div>
+          <pre>{
+  "text": "string (required)",
+  "compareTexts": ["string", "string"]  // optional array of texts to compare
+}</pre>
+          <div class="code-label">Response</div>
+          <pre>{
+  "success": true,
+  "originalityScore": 92,
+  "plagiarismScore": 8,
+  "verdict": "Original",
+  "matches": [
+    {
+      "source": "Document 1",
+      "similarity": 8,
+      "matchedPhrases": ["...machine learning algorithms..."]
+    }
+  ],
+  "analysis": {
+    "uniqueTrigramCount": 340,
+    "totalSentences": 12,
+    "avgSentenceLength": 18
+  }
+}</pre>
+        </div>
+      </div>
+
+      <div class="endpoint">
+        <div class="endpoint-header" onclick="toggleEndpoint(this)">
+          <span class="method method-post">POST</span>
+          <span class="endpoint-path">/analyze</span>
+          <span class="endpoint-desc">Run all three checks at once</span>
+        </div>
+        <div class="endpoint-body">
+          <div class="code-label">Request body</div>
+          <pre>{
+  "text": "string (required)",
+  "compareTexts": ["string"]  // optional
+}</pre>
+          <div class="code-label">Response</div>
+          <pre>{
+  "success": true,
+  "humanize": { ... },
+  "detect": { ... },
+  "plagiarism": { ... }
+}</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-label">Quick Start</div>
+      <div style="margin-top:12px">
+        <div class="code-label">1. Start the server</div>
+        <pre>node server.js</pre>
+        <div class="code-label" style="margin-top:12px">2. Test it</div>
+        <pre>curl http://localhost:3000/</pre>
+        <div class="code-label" style="margin-top:12px">3. Humanize some text</div>
+        <pre>curl -X POST http://localhost:3000/humanize \\
+  -H "Content-Type: application/json" \\
+  -d '{"text": "Furthermore, it is important to note that utilizing this comprehensive framework will significantly enhance overall performance."}'</pre>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<footer class="wrapper">
+  TextShield API · Rule-based NLP · Zero external dependencies · Run with <code style="font-family:var(--font-mono);background:var(--surface2);padding:2px 6px;border-radius:4px;">node server.js</code>
+</footer>
+
+<script>
+function g(id) { return document.getElementById(id); }
+function sh(id, html) { const el = g(id); if(el) el.innerHTML = html; }
+
+const API_BASE = () => {
+  const input = g('apiUrlInput');
+  return input ? input.value.replace(/\\/$/, '') : '';
+};
+
+// ── Status check ──
+async function checkServer() {
+  const dot = g('statusDot');
+  const txt = g('statusText');
+  try {
+    const resp = await fetch(API_BASE() + '/', { signal: AbortSignal.timeout(3000) });
+    if (resp.ok) {
+      if (dot) dot.className = 'status-dot online';
+      if (txt) txt.textContent = 'API server online';
+    } else { throw new Error(); }
+  } catch {
+    if (dot) dot.className = 'status-dot offline';
+    if (txt) txt.textContent = 'Server offline';
+  }
+}
+checkServer();
+setInterval(checkServer, 8000);
+
+// ── Tab switching ──
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = g('panel-' + id);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// ── Loading state ──
+function setLoading(btnId, spinnerId, loading) {
+  const btn = g(btnId);
+  const spinner = g(spinnerId);
+  if (btn) btn.disabled = loading;
+  if (spinner) spinner.style.display = loading ? 'block' : 'none';
+}
+
+function copyApiUrl() {
+  const input = g('apiUrlInput');
+  if (input) navigator.clipboard.writeText(input.value);
+  const btn = document.querySelector('.copy-btn');
+  if (btn) { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); }
+}
+
+function clearField(inputId, resultId) {
+  const inp = g(inputId); if(inp) inp.value = '';
+  sh(resultId, '<span class="result-placeholder">Humanized text will appear here...</span>');
+  const m = g('humanizeMetrics'); if(m) m.style.display = 'none';
+}
+
+// ── Samples ──
+const SAMPLES = {
+  humanize: \`Furthermore, it is important to note that utilizing this comprehensive framework will significantly enhance overall performance. The implementation of these state-of-the-art methodologies demonstrates a robust approach to problem-solving. Subsequently, one must consider the substantial benefits that this innovative solution provides. In conclusion, leveraging these best practices will facilitate optimal outcomes for all stakeholders moving forward.\`,
+  detect: \`In the realm of artificial intelligence, it is important to note that machine learning algorithms have demonstrated significant advancements. Furthermore, the implementation of neural networks has facilitated a comprehensive transformation of data processing capabilities. It is worth noting that these innovative solutions leverage cutting-edge methodologies to optimize performance outcomes.\`,
+  analyze: \`The utilization of comprehensive methodologies in modern educational frameworks has demonstrated substantial improvements in learning outcomes. Furthermore, it is essential to consider that innovative approaches facilitate greater engagement among students. These state-of-the-art techniques leverage best practices to optimize the overall educational experience.\`
+};
+
+function loadSample(type) {
+  const el = g(type === 'humanize' ? 'humanizeInput' : type === 'detect' ? 'detectInput' : 'analyzeInput');
+  if (el) el.value = SAMPLES[type] || '';
+}
+
+// ── HUMANIZE ──
+async function runHumanize() {
+  const inputEl = g('humanizeInput');
+  const text = inputEl ? inputEl.value.trim() : '';
+  if (!text) return alert('Please enter some text first.');
+  setLoading('humanizeBtn', 'humanizeSpinner', true);
+  try {
+    const resp = await fetch(API_BASE() + '/humanize', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Server error');
+
+    const el = g('humanizeResult');
+    if (el) {
+      el.textContent = data.humanizedText;
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'copy-result';
+      copyBtn.textContent = 'Copy';
+      copyBtn.onclick = () => {
+        navigator.clipboard.writeText(data.humanizedText);
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => copyBtn.textContent = 'Copy', 1500);
+      };
+      el.appendChild(copyBtn);
+    }
+
+    const hc = g('h-changes'); if(hc) hc.textContent = data.changesCount;
+    const hr = g('h-changerate'); if(hr) hr.textContent = data.changeRate;
+    const hw = g('h-words'); if(hw) hw.textContent = data.wordCount;
+    const hm = g('humanizeMetrics'); if(hm) hm.style.display = 'grid';
+
+  } catch(e) {
+    sh('humanizeResult', '<span style="color:var(--red)">Error: ' + e.message + '</span>');
+  }
+  setLoading('humanizeBtn', 'humanizeSpinner', false);
+}
+
+// ── DETECT ──
+async function runDetect() {
+  const inputEl = g('detectInput');
+  const text = inputEl ? inputEl.value.trim() : '';
+  if (!text) return alert('Please enter some text.');
+  setLoading('detectBtn', 'detectSpinner', true);
+  try {
+    const resp = await fetch(API_BASE() + '/detect', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Server error');
+    renderDetectResults(data, 'detectResults');
+  } catch(e) {
+    sh('detectResults', '<span style="color:var(--red)">Error: ' + e.message + '</span>');
+  }
+  setLoading('detectBtn', 'detectSpinner', false);
+}
+
+function clearDetect() {
+  const inp = g('detectInput'); if(inp) inp.value = '';
+  sh('detectResults', '<p style="color:var(--muted);font-size:13px;">Results will appear here after analysis.</p>');
+}
+
+function renderDetectResults(data, containerId) {
+  const container = g(containerId);
+  if (!container) return;
+
+  const RING_R = 38;
+  const RING_C = 2 * Math.PI * RING_R;
+  const aiOff = RING_C - (data.aiProbability / 100) * RING_C;
+  const humOff = RING_C - (data.humanProbability / 100) * RING_C;
+  const aiColor = data.aiProbability >= 60 ? 'var(--red)' : data.aiProbability >= 35 ? 'var(--amber)' : 'var(--green)';
+  const vclass = data.aiProbability >= 60 ? 'verdict-ai' : data.aiProbability >= 35 ? 'verdict-mixed' : 'verdict-human';
+  const icon = data.aiProbability >= 60 ? '◉' : data.aiProbability >= 35 ? '◑' : '○';
+
+  const signalLabels = {
+    aiKeywordDensity: 'AI keyword density',
+    sentenceUniformity: 'Sentence uniformity',
+    passiveVoice: 'Passive voice',
+    transitionWordOveruse: 'Transition overuse',
+    structureRepetition: 'Structure repetition',
+    formalPhraseUsage: 'Formal phrase usage'
+  };
+
+  const signalBars = Object.entries(data.signals || {}).map(([k, v]) => {
+    const color = v > 66 ? 'var(--red)' : v > 33 ? 'var(--amber)' : 'var(--green)';
+    return \`<div class="signal-row">
+      <span class="signal-name">\${signalLabels[k] || k}</span>
+      <div class="signal-bar-bg"><div class="signal-bar" style="width:\${v}%;background:\${color}"></div></div>
+      <span class="signal-val">\${v}%</span>
+    </div>\`;
+  }).join('');
+
+  const kws = (data.detectedKeywords || []);
+  const kwHTML = kws.length ? '<div class="keywords">' + kws.map(k => \`<span class="kw">\${k}</span>\`).join('') + '</div>' : '';
+
+  container.innerHTML = \`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="metric">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 90 90">
+            <circle class="ring-bg" cx="45" cy="45" r="\${RING_R}"/>
+            <circle class="ring-fill" cx="45" cy="45" r="\${RING_R}" stroke="\${aiColor}"
+              stroke-dasharray="\${RING_C}" stroke-dashoffset="\${aiOff}"/>
+          </svg>
+          <div class="ring-text" style="color:\${aiColor}">\${data.aiProbability}%</div>
+        </div>
+        <div class="metric-label">AI Probability</div>
+      </div>
+      <div class="metric">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 90 90">
+            <circle class="ring-bg" cx="45" cy="45" r="\${RING_R}"/>
+            <circle class="ring-fill" cx="45" cy="45" r="\${RING_R}" stroke="var(--green)"
+              stroke-dasharray="\${RING_C}" stroke-dashoffset="\${humOff}"/>
+          </svg>
+          <div class="ring-text" style="color:var(--green)">\${data.humanProbability}%</div>
+        </div>
+        <div class="metric-label">Human Probability</div>
+      </div>
+    </div>
+    <div class="verdict \${vclass}">\${icon} \${data.verdict} &middot; \${data.confidence} confidence</div>
+    <div style="margin-top:14px">
+      <div class="card-label" style="margin-bottom:10px">Signal Breakdown</div>
+      <div class="signals">\${signalBars}</div>
+    </div>
+    \${kwHTML ? '<div style="margin-top:12px"><div class="card-label" style="margin-bottom:6px">Detected AI Keywords</div>' + kwHTML + '</div>' : ''}
+    <div style="margin-top:14px;display:flex;gap:16px;font-size:12px;color:var(--muted)">
+      <span>\${data.wordCount} words</span>
+      <span>\${data.sentenceCount} sentences</span>
+      <span>~\${data.avgWordsPerSentence} words/sentence</span>
+    </div>\`;
+}
+
+// ── PLAGIARISM ──
+let compareCount = 0;
+
+function addCompare() {
+  compareCount++;
+  const list = g('compareList');
+  if (!list) return;
+  const div = document.createElement('div');
+  div.className = 'compare-item';
+  div.id = 'compare-' + compareCount;
+  const cc = compareCount;
+  div.innerHTML = \`<textarea placeholder="Comparison document \${cc}..." style="min-height:80px"></textarea>
+    <button class="btn btn-secondary" onclick="g('compare-\${cc}').remove()" style="padding:6px 10px;font-size:11px;">✕</button>\`;
+  list.appendChild(div);
+}
+
+function clearPlag() {
+  const pi = g('plagInput'); if(pi) pi.value = '';
+  const cl = g('compareList'); if(cl) cl.innerHTML = '';
+  sh('plagResults', '<p style="color:var(--muted);font-size:13px;">Results will appear here after checking.</p>');
+  compareCount = 0;
+}
+
+async function runPlagiarism() {
+  const inputEl = g('plagInput');
+  const text = inputEl ? inputEl.value.trim() : '';
+  if (!text) return alert('Please enter text to check.');
+  const compareItems = document.querySelectorAll('#compareList .compare-item textarea');
+  const compareTexts = [...compareItems].map(t => t.value.trim()).filter(Boolean);
+  setLoading('plagBtn', 'plagSpinner', true);
+  try {
+    const resp = await fetch(API_BASE() + '/plagiarism', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text, compareTexts })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Server error');
+    renderPlagResults(data, 'plagResults');
+  } catch(e) {
+    sh('plagResults', '<span style="color:var(--red)">Error: ' + e.message + '</span>');
+  }
+  setLoading('plagBtn', 'plagSpinner', false);
+}
+
+function renderPlagResults(data, containerId) {
+  const container = g(containerId);
+  if (!container) return;
+
+  const RING_R = 38;
+  const RING_C = 2 * Math.PI * RING_R;
+  const origOff = RING_C - (data.originalityScore / 100) * RING_C;
+  const vcolor = data.plagiarismScore >= 40 ? 'var(--red)' : data.plagiarismScore >= 20 ? 'var(--amber)' : 'var(--green)';
+
+  const matchesHTML = (data.matches || []).length
+    ? data.matches.map(m => {
+        const mc = m.similarity >= 40 ? 'var(--red)' : m.similarity >= 20 ? 'var(--amber)' : 'var(--muted)';
+        return \`<div class="match-card">
+          <div class="match-header">
+            <span class="match-source">\${m.source}</span>
+            <span class="match-pct" style="color:\${mc}">\${m.similarity}% match</span>
+          </div>
+          \${(m.matchedPhrases||[]).length ? '<div class="match-phrases">' + m.matchedPhrases.join('<br>') + '</div>' : ''}
+        </div>\`;
+      }).join('')
+    : '<div style="color:var(--green);font-size:13px;margin-top:10px">No significant matches found.</div>';
+
+  container.innerHTML = \`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div class="metric">
+        <div class="ring-wrap">
+          <svg class="ring" viewBox="0 0 90 90">
+            <circle class="ring-bg" cx="45" cy="45" r="\${RING_R}"/>
+            <circle class="ring-fill" cx="45" cy="45" r="\${RING_R}" stroke="var(--green)"
+              stroke-dasharray="\${RING_C}" stroke-dashoffset="\${origOff}"/>
+          </svg>
+          <div class="ring-text" style="color:var(--green)">\${data.originalityScore}%</div>
+        </div>
+        <div class="metric-label">Original</div>
+      </div>
+      <div class="metric">
+        <div class="metric-val" style="color:\${vcolor};font-size:28px">\${data.plagiarismScore}%</div>
+        <div class="metric-label" style="margin-top:8px">Plagiarism</div>
+        <div style="margin-top:8px;font-size:11px;font-weight:700;color:\${vcolor}">\${data.verdict}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px">\${(data.analysis||{}).note||''}</div>
+    <div class="card-label">Matches</div>
+    \${matchesHTML}\`;
+}
+
+// ── FULL ANALYZE ──
+async function runAnalyze() {
+  const inputEl = g('analyzeInput');
+  const text = inputEl ? inputEl.value.trim() : '';
+  if (!text) return alert('Please enter some text.');
+  setLoading('analyzeBtn', 'analyzeSpinner', true);
+  sh('analyzeResults', '');
+  try {
+    const resp = await fetch(API_BASE() + '/analyze', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Server error');
+
+    const container = g('analyzeResults');
+    if (container) {
+      container.innerHTML = \`
+        <div class="all-results">
+          <div class="all-section">
+            <div class="all-section-title">✦ Humanization</div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Changes: <strong style="color:var(--text)">\${data.humanize.changesCount}</strong> (\${data.humanize.changeRate})</div>
+            <div class="result-area">\${data.humanize.humanizedText}</div>
+          </div>
+          <div class="all-section">
+            <div class="all-section-title">◉ AI Detection</div>
+            <div id="allDetectResults"></div>
+          </div>
+          <div class="all-section">
+            <div class="all-section-title">⊞ Plagiarism</div>
+            <div id="allPlagResults"></div>
+          </div>
+        </div>\`;
+      renderDetectResults(data.detect, 'allDetectResults');
+      renderPlagResults(data.plagiarism, 'allPlagResults');
+    }
+  } catch(e) {
+    sh('analyzeResults', '<span style="color:var(--red)">Error: ' + e.message + '</span>');
+  }
+  setLoading('analyzeBtn', 'analyzeSpinner', false);
+}
+
+// ── DOCS TOGGLE ──
+function toggleEndpoint(header) {
+  const body = header.nextElementSibling;
+  if (body) body.classList.toggle('open');
+}
+</script>
+</body>
+</html>`;
+
 function sendJSON(res, status, data) {
   res.writeHead(status, {
     "Content-Type": "application/json",
@@ -635,25 +1695,9 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  // ── GET /  (serve frontend or API docs) ───────
   if (req.method === "GET" && (pathname === "/" || pathname === "/index.html")) {
-    const htmlPath = path.join(__dirname, "public", "index.html");
-    if (fs.existsSync(htmlPath)) {
-      const data = fs.readFileSync(htmlPath);
-      res.writeHead(200, { "Content-Type": "text/html" });
-      return res.end(data);
-    }
-    return sendJSON(res, 200, {
-      name: "TextShield API",
-      version: "1.0.0",
-      description: "Rule-based NLP: AI humanizer, AI detector, plagiarism checker",
-      endpoints: {
-        "POST /humanize": { description: "Convert AI-generated text to human-sounding text" },
-        "POST /detect": { description: "Detect whether text is AI-generated" },
-        "POST /plagiarism": { description: "Check text for plagiarism" },
-        "POST /analyze": { description: "Run all three checks at once" },
-      },
-    });
+    res.writeHead(200, { "Content-Type": "text/html" });
+    return res.end(HTML);
   }
 
   // ── POST /humanize ──────────────────────────
