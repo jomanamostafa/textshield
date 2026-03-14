@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
   :root {
     --bg: #0a0a0f;
     --surface: #111118;
@@ -27,9 +27,9 @@
     --font-serif: 'Instrument Serif', serif;
     --font-mono: 'JetBrains Mono', monospace;
   }
-
+ 
   html { scroll-behavior: smooth; }
-
+ 
   body {
     font-family: var(--font-display);
     background: var(--bg);
@@ -37,7 +37,7 @@
     min-height: 100vh;
     overflow-x: hidden;
   }
-
+ 
   /* ── GRID BG ── */
   body::before {
     content: '';
@@ -50,7 +50,7 @@
     pointer-events: none;
     z-index: 0;
   }
-
+ 
   .glow {
     position: fixed;
     width: 600px; height: 600px;
@@ -69,10 +69,10 @@
     pointer-events: none;
     z-index: 0;
   }
-
+ 
   /* ── LAYOUT ── */
   .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-
+ 
   /* ── HEADER ── */
   header {
     padding: 32px 0 20px;
@@ -98,7 +98,7 @@
     padding: 4px 10px;
     border-radius: 20px;
   }
-
+ 
   /* ── HERO ── */
   .hero {
     padding: 48px 0 40px;
@@ -124,7 +124,7 @@
   }
   h1 em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--accent2); }
   .hero-sub { font-size: 16px; color: var(--muted); max-width: 480px; margin: 0 auto 32px; line-height: 1.6; }
-
+ 
   /* ── SERVER STATUS ── */
   .server-status {
     display: inline-flex; align-items: center; gap: 8px;
@@ -134,7 +134,7 @@
   .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
   .status-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); }
   .status-dot.offline { background: var(--red); }
-
+ 
   /* ── API URL BAR ── */
   .api-url-bar {
     display: flex; align-items: center; gap: 0;
@@ -156,7 +156,7 @@
     padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.2s;
   }
   .copy-btn:hover { background: rgba(124,110,247,0.25); }
-
+ 
   /* ── TABS ── */
   .tabs-row {
     display: flex; gap: 4px;
@@ -179,15 +179,15 @@
     border: 1px solid var(--border2);
   }
   .tab-icon { font-size: 14px; }
-
+ 
   /* ── PANELS ── */
   .panel { display: none; }
   .panel.active { display: block; animation: fadeUp 0.25s ease; }
   @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
-
+ 
   .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   @media (max-width: 700px) { .panel-grid { grid-template-columns: 1fr; } }
-
+ 
   /* ── CARD ── */
   .card {
     background: var(--surface);
@@ -200,7 +200,7 @@
     text-transform: uppercase; color: var(--muted);
     margin-bottom: 10px;
   }
-
+ 
   /* ── TEXTAREA ── */
   textarea {
     width: 100%; min-height: 180px;
@@ -213,7 +213,7 @@
   }
   textarea:focus { border-color: var(--border2); }
   textarea::placeholder { color: var(--muted); }
-
+ 
   /* ── BUTTONS ── */
   .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
   .btn {
@@ -243,7 +243,7 @@
     display: none;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-
+ 
   /* ── RESULT AREA ── */
   .result-area {
     background: var(--surface2); border: 1px solid var(--border);
@@ -254,7 +254,7 @@
     position: relative;
   }
   .result-placeholder { color: var(--muted); font-style: italic; }
-
+ 
   /* ── METRICS ── */
   .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
   .metric {
@@ -264,7 +264,7 @@
   }
   .metric-val { font-size: 24px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
   .metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
-
+ 
   /* ── VERDICT BADGE ── */
   .verdict {
     display: inline-flex; align-items: center; gap: 8px;
@@ -275,7 +275,7 @@
   .verdict-ai { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
   .verdict-mixed { background: rgba(251,191,36,0.15); color: var(--amber); border: 1px solid rgba(251,191,36,0.3); }
   .verdict-human { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
-
+ 
   /* ── SIGNAL BARS ── */
   .signals { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
   .signal-row { display: flex; align-items: center; gap: 10px; }
@@ -283,7 +283,7 @@
   .signal-bar-bg { flex: 1; height: 6px; background: var(--surface3); border-radius: 4px; overflow: hidden; }
   .signal-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
   .signal-val { font-family: var(--font-mono); font-size: 11px; color: var(--muted); width: 32px; text-align: right; }
-
+ 
   /* ── KEYWORDS ── */
   .keywords { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .kw {
@@ -292,7 +292,7 @@
     border: 1px solid rgba(248,113,113,0.2);
     padding: 3px 8px; border-radius: 5px;
   }
-
+ 
   /* ── PLAGIARISM MATCHES ── */
   .match-card {
     background: var(--surface2); border: 1px solid var(--border);
@@ -302,13 +302,13 @@
   .match-source { font-size: 13px; font-weight: 600; color: var(--text); }
   .match-pct { font-family: var(--font-mono); font-size: 14px; font-weight: 700; }
   .match-phrases { font-family: var(--font-mono); font-size: 11px; color: var(--muted); line-height: 1.8; }
-
+ 
   /* ── COMPARE SECTION ── */
   .compare-add { margin-top: 12px; }
   .compare-item { display: flex; gap: 8px; margin-bottom: 8px; }
   .compare-item textarea { min-height: 80px; }
   .compare-item .btn { align-self: flex-start; padding: 8px 12px; flex-shrink: 0; }
-
+ 
   /* ── ANALYZE TAB ── */
   .all-results { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
   .all-section {
@@ -321,7 +321,7 @@
     margin-bottom: 12px;
     display: flex; align-items: center; gap: 8px;
   }
-
+ 
   /* ── API DOCS ── */
   .docs-section { margin-bottom: 24px; }
   .endpoint {
@@ -356,7 +356,7 @@
     margin-top: 8px;
   }
   .code-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
-
+ 
   /* ── COPY RESULT BTN ── */
   .copy-result {
     position: absolute; top: 8px; right: 8px;
@@ -365,14 +365,14 @@
     padding: 3px 8px; border-radius: 5px; cursor: pointer; transition: all 0.2s;
   }
   .copy-result:hover { color: var(--text); }
-
+ 
   /* ── FOOTER ── */
   footer {
     text-align: center; padding: 40px 0 32px;
     font-size: 12px; color: var(--muted);
     border-top: 1px solid var(--border); margin-top: 60px;
   }
-
+ 
   /* ── PROGRESS RING ── */
   .ring-wrap { position: relative; width: 90px; height: 90px; margin: 0 auto 10px; }
   svg.ring { width: 90px; height: 90px; transform: rotate(-90deg); }
@@ -386,10 +386,10 @@
 </style>
 </head>
 <body>
-
+ 
 <div class="glow"></div>
 <div class="glow2"></div>
-
+ 
 <div class="wrapper">
   <header>
     <div class="logo">
@@ -398,23 +398,23 @@
     </div>
     <div class="api-badge">v1.0 · REST API</div>
   </header>
-
+ 
   <div class="hero">
     <div class="hero-eyebrow">Rule-based NLP · No external AI APIs</div>
     <h1>The <em>complete</em> text<br>intelligence toolkit</h1>
     <p class="hero-sub">Humanize AI text, detect AI-generated content, and check plagiarism — all from one powerful API.</p>
-
+ 
     <div class="server-status">
       <div class="status-dot" id="statusDot"></div>
       <span id="statusText">Checking server...</span>
     </div>
-
+ 
     <div class="api-url-bar">
-      <input type="text" id="apiUrlInput" value="http://localhost:3000" readonly>
+      <input type="text" id="apiUrlInput" value="" readonly>
       <button class="copy-btn" onclick="copyApiUrl()">Copy</button>
     </div>
   </div>
-
+ 
   <!-- TABS -->
   <div class="tabs-row">
     <button class="tab-btn active" onclick="switchTab('humanize', this)">
@@ -433,7 +433,7 @@
       <span class="tab-icon">⊡</span> API Docs
     </button>
   </div>
-
+ 
   <!-- ─── HUMANIZE PANEL ─── -->
   <div class="panel active" id="panel-humanize">
     <div class="panel-grid">
@@ -476,7 +476,7 @@
       </div>
     </div>
   </div>
-
+ 
   <!-- ─── DETECT PANEL ─── -->
   <div class="panel" id="panel-detect">
     <div class="panel-grid">
@@ -504,7 +504,7 @@
       </div>
     </div>
   </div>
-
+ 
   <!-- ─── PLAGIARISM PANEL ─── -->
   <div class="panel" id="panel-plagiarism">
     <div class="panel-grid">
@@ -512,12 +512,12 @@
         <div class="card">
           <div class="card-label">Primary Text</div>
           <textarea id="plagInput" placeholder="Paste the text you want to check for plagiarism..."></textarea>
-
+ 
           <div class="card-label" style="margin-top:16px">Comparison Documents (optional)</div>
           <p style="font-size:12px; color:var(--muted); margin-bottom:10px">Add texts to compare against. Without them, internal repetition analysis runs.</p>
           <div id="compareList"></div>
           <button class="btn btn-secondary" onclick="addCompare()" style="margin-top:6px; font-size:12px; padding: 7px 14px;">+ Add comparison text</button>
-
+ 
           <div class="btn-row">
             <button class="btn btn-primary" onclick="runPlagiarism()" id="plagBtn">
               <span class="spinner" id="plagSpinner"></span>
@@ -537,7 +537,7 @@
       </div>
     </div>
   </div>
-
+ 
   <!-- ─── FULL ANALYSIS PANEL ─── -->
   <div class="panel" id="panel-analyze">
     <div class="card">
@@ -553,12 +553,12 @@
     </div>
     <div id="analyzeResults"></div>
   </div>
-
+ 
   <!-- ─── DOCS PANEL ─── -->
   <div class="panel" id="panel-docs">
     <div class="docs-section">
       <div class="card-label" style="margin-bottom:16px">API Reference</div>
-
+ 
       <div class="endpoint">
         <div class="endpoint-header" onclick="toggleEndpoint(this)">
           <span class="method method-get">GET</span>
@@ -570,7 +570,7 @@
           <pre>{ "name": "TextShield API", "version": "1.0.0", "endpoints": { ... } }</pre>
         </div>
       </div>
-
+ 
       <div class="endpoint">
         <div class="endpoint-header" onclick="toggleEndpoint(this)">
           <span class="method method-post">POST</span>
@@ -597,7 +597,7 @@
   -d '{"text": "Utilize this tool to facilitate better outcomes."}'</pre>
         </div>
       </div>
-
+ 
       <div class="endpoint">
         <div class="endpoint-header" onclick="toggleEndpoint(this)">
           <span class="method method-post">POST</span>
@@ -631,7 +631,7 @@
 }</pre>
         </div>
       </div>
-
+ 
       <div class="endpoint">
         <div class="endpoint-header" onclick="toggleEndpoint(this)">
           <span class="method method-post">POST</span>
@@ -665,7 +665,7 @@
 }</pre>
         </div>
       </div>
-
+ 
       <div class="endpoint">
         <div class="endpoint-header" onclick="toggleEndpoint(this)">
           <span class="method method-post">POST</span>
@@ -688,7 +688,7 @@
         </div>
       </div>
     </div>
-
+ 
     <div class="card" style="margin-top:16px">
       <div class="card-label">Quick Start</div>
       <div style="margin-top:12px">
@@ -703,16 +703,16 @@
       </div>
     </div>
   </div>
-
+ 
 </div><!-- /wrapper -->
-
+ 
 <footer class="wrapper">
   TextShield API · Rule-based NLP · Zero external dependencies · Run with <code style="font-family:var(--font-mono);background:var(--surface2);padding:2px 6px;border-radius:4px;">node server.js</code>
 </footer>
-
+ 
 <script>
 const API_BASE = () => document.getElementById('apiUrlInput').value.replace(/\/$/, '');
-
+ 
 // ── Status check ──
 async function checkServer() {
   const dot = document.getElementById('statusDot');
@@ -730,7 +730,7 @@ async function checkServer() {
 }
 checkServer();
 setInterval(checkServer, 8000);
-
+ 
 // ── Tab switching ──
 function switchTab(id, btn) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -738,7 +738,7 @@ function switchTab(id, btn) {
   document.getElementById('panel-' + id).classList.add('active');
   btn.classList.add('active');
 }
-
+ 
 // ── Helpers ──
 function setLoading(btnId, spinnerId, loading) {
   const btn = document.getElementById(btnId);
@@ -746,39 +746,39 @@ function setLoading(btnId, spinnerId, loading) {
   btn.disabled = loading;
   spinner.style.display = loading ? 'block' : 'none';
 }
-
+ 
 function copyApiUrl() {
   navigator.clipboard.writeText(document.getElementById('apiUrlInput').value);
   const btn = document.querySelector('.copy-btn');
   btn.textContent = 'Copied!';
   setTimeout(() => btn.textContent = 'Copy', 1500);
 }
-
+ 
 function copyResult(id) {
   const el = document.getElementById(id);
   navigator.clipboard.writeText(el.innerText.replace('Copy','').trim());
 }
-
+ 
 function clearField(inputId, resultId) {
   document.getElementById(inputId).value = '';
   document.getElementById(resultId).innerHTML = '<span class="result-placeholder">Humanized text will appear here...</span>';
   document.getElementById('humanizeMetrics').style.display = 'none';
   document.getElementById('copyHumanize').style.display = 'none';
 }
-
+ 
 // ── Samples ──
 const SAMPLES = {
   humanize: `Furthermore, it is important to note that utilizing this comprehensive framework will significantly enhance overall performance. The implementation of these state-of-the-art methodologies demonstrates a robust approach to problem-solving. Subsequently, one must consider the substantial benefits that this innovative solution provides. In conclusion, leveraging these best practices will facilitate optimal outcomes for all stakeholders moving forward.`,
   detect: `In the realm of artificial intelligence, it is important to note that machine learning algorithms have demonstrated significant advancements. Furthermore, the implementation of neural networks has facilitated a comprehensive transformation of data processing capabilities. It is worth noting that these innovative solutions leverage cutting-edge methodologies to optimize performance outcomes. Subsequently, researchers have established robust frameworks that ensure seamless integration across multiple domains.`,
   analyze: `The utilization of comprehensive methodologies in modern educational frameworks has demonstrated substantial improvements in learning outcomes. Furthermore, it is essential to consider that innovative approaches facilitate greater engagement among students. These state-of-the-art techniques leverage best practices to optimize the overall educational experience. In conclusion, moving forward with these robust implementations will ensure significant enhancements to academic performance.`
 };
-
+ 
 function loadSample(type) {
   if (type === 'humanize') document.getElementById('humanizeInput').value = SAMPLES.humanize;
   if (type === 'detect') document.getElementById('detectInput').value = SAMPLES.detect;
   if (type === 'analyze') document.getElementById('analyzeInput').value = SAMPLES.analyze;
 }
-
+ 
 // ── HUMANIZE ──
 async function runHumanize() {
   const text = document.getElementById('humanizeInput').value.trim();
@@ -791,14 +791,14 @@ async function runHumanize() {
     });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || 'Server error');
-
+ 
     const el = document.getElementById('humanizeResult');
     el.innerHTML = '';
     el.appendChild(document.createTextNode(data.humanizedText));
     const copyBtn = document.getElementById('copyHumanize');
     copyBtn.style.display = 'block';
     el.appendChild(copyBtn);
-
+ 
     document.getElementById('h-changes').textContent = data.changesCount;
     document.getElementById('h-changerate').textContent = data.changeRate;
     document.getElementById('h-words').textContent = data.wordCount;
@@ -808,7 +808,7 @@ async function runHumanize() {
   }
   setLoading('humanizeBtn', 'humanizeSpinner', false);
 }
-
+ 
 // ── DETECT ──
 async function runDetect() {
   const text = document.getElementById('detectInput').value.trim();
@@ -827,12 +827,12 @@ async function runDetect() {
   }
   setLoading('detectBtn', 'detectSpinner', false);
 }
-
+ 
 function clearDetect() {
   document.getElementById('detectInput').value = '';
   document.getElementById('detectResults').innerHTML = '<p style="color:var(--muted); font-size:13px;">Results will appear here after analysis.</p>';
 }
-
+ 
 function renderDetectResults(data, containerId) {
   const c = document.getElementById(containerId);
   const vclass = data.aiProbability >= 75 ? 'verdict-ai' : data.aiProbability >= 45 ? 'verdict-mixed' : 'verdict-human';
@@ -842,7 +842,7 @@ function renderDetectResults(data, containerId) {
   const aiOffset = circ - (data.aiProbability / 100) * circ;
   const humOffset = circ - (data.humanProbability / 100) * circ;
   const aiColor = data.aiProbability >= 75 ? 'var(--red)' : data.aiProbability >= 45 ? 'var(--amber)' : 'var(--green)';
-
+ 
   const signalLabels = {
     aiKeywordDensity: 'AI keyword density',
     sentenceUniformity: 'Sentence uniformity',
@@ -851,7 +851,7 @@ function renderDetectResults(data, containerId) {
     structureRepetition: 'Structure repetition',
     formalPhraseUsage: 'Formal phrase usage'
   };
-
+ 
   const signalBars = Object.entries(data.signals).map(([k, v]) => {
     const color = v > 66 ? 'var(--red)' : v > 33 ? 'var(--amber)' : 'var(--green)';
     return `<div class="signal-row">
@@ -860,11 +860,11 @@ function renderDetectResults(data, containerId) {
       <span class="signal-val">${v}%</span>
     </div>`;
   }).join('');
-
+ 
   const kwHTML = data.detectedKeywords.length
     ? `<div class="keywords">${data.detectedKeywords.map(k => `<span class="kw">${k}</span>`).join('')}</div>`
     : '';
-
+ 
   c.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
       <div class="metric">
@@ -903,7 +903,7 @@ function renderDetectResults(data, containerId) {
     </div>
   `;
 }
-
+ 
 // ── PLAGIARISM ──
 let compareCount = 0;
 function addCompare() {
@@ -918,14 +918,14 @@ function addCompare() {
   `;
   list.appendChild(div);
 }
-
+ 
 function clearPlag() {
   document.getElementById('plagInput').value = '';
   document.getElementById('compareList').innerHTML = '';
   document.getElementById('plagResults').innerHTML = '<p style="color:var(--muted); font-size:13px;">Results will appear here after checking.</p>';
   compareCount = 0;
 }
-
+ 
 async function runPlagiarism() {
   const text = document.getElementById('plagInput').value.trim();
   if (!text) return alert('Please enter text to check.');
@@ -945,13 +945,13 @@ async function runPlagiarism() {
   }
   setLoading('plagBtn', 'plagSpinner', false);
 }
-
+ 
 function renderPlagResults(data, containerId) {
   const c = document.getElementById(containerId);
   const vcolor = data.plagiarismScore >= 40 ? 'var(--red)' : data.plagiarismScore >= 20 ? 'var(--amber)' : 'var(--green)';
   const r = 38, circ = 2 * Math.PI * r;
   const origOffset = circ - (data.originalityScore / 100) * circ;
-
+ 
   const matchesHTML = data.matches.length
     ? data.matches.map(m => {
         const mc = m.similarity >= 40 ? 'var(--red)' : m.similarity >= 20 ? 'var(--amber)' : 'var(--muted)';
@@ -964,7 +964,7 @@ function renderPlagResults(data, containerId) {
         </div>`;
       }).join('')
     : `<div style="color:var(--green); font-size:13px; margin-top:10px">No significant matches found.</div>`;
-
+ 
   c.innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
       <div class="metric">
@@ -989,7 +989,7 @@ function renderPlagResults(data, containerId) {
     ${matchesHTML}
   `;
 }
-
+ 
 // ── FULL ANALYZE ──
 async function runAnalyze() {
   const text = document.getElementById('analyzeInput').value.trim();
@@ -1003,7 +1003,7 @@ async function runAnalyze() {
     });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error);
-
+ 
     const container = document.getElementById('analyzeResults');
     container.innerHTML = `
       <div class="all-results">
@@ -1029,7 +1029,7 @@ async function runAnalyze() {
   }
   setLoading('analyzeBtn', 'analyzeSpinner', false);
 }
-
+ 
 // ── DOCS TOGGLE ──
 function toggleEndpoint(header) {
   const body = header.nextElementSibling;
